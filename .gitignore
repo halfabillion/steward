@@ -9,6 +9,6 @@ coverage/
 *.log
 .DS_Store
 web/dist/
-data/
+/data/
 .secrets/
 *.key
