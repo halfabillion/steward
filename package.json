@@ -1,0 +1,24 @@
+{
+  "name": "steward",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Steward spike: research-to-portfolio agent for Coinbase tokenized stocks on Base.",
+  "scripts": {
+    "spike": "node scripts/spike-reads.js",
+    "test": "node --test test/engine.test.js && hardhat test",
+    "test:engine": "node --test test/engine.test.js",
+    "test:contracts": "hardhat test",
+    "compile": "hardhat compile"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "devDependencies": {
+    "@nomicfoundation/hardhat-ethers": "^3.0.8",
+    "chai": "^4.5.0",
+    "ethers": "^6.13.5",
+    "hardhat": "^2.22.19",
+    "@nomicfoundation/hardhat-chai-matchers": "^2.0.8"
+  }
+}
