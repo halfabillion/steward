@@ -1,13 +1,13 @@
 /**
  * Minimal JSON-RPC helper for read-only eth_call. No wallets, no signing, no keys.
  */
-export async function rpc(url, method, params = [], { timeoutMs = 20_000 } = {}) {
+async function rpcOnce(url, method, params, timeoutMs) {
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), timeoutMs);
   try {
     const res = await fetch(url, {
       method: "POST",
-      headers: { "content-type": "application/json", "user-agent": "steward-spike/0.1" },
+      headers: { "content-type": "application/json", "user-agent": "steward/0.2" },
       body: JSON.stringify({ jsonrpc: "2.0", id: 1, method, params }),
       signal: controller.signal,
     });
@@ -22,6 +22,22 @@ export async function rpc(url, method, params = [], { timeoutMs = 20_000 } = {})
   } finally {
     clearTimeout(timer);
   }
+}
+
+/** Read-only JSON-RPC. Bounded retries on 429/503 only — never an unbounded loop. */
+export async function rpc(url, method, params = [], { timeoutMs = 20_000, retries = 3 } = {}) {
+  let last;
+  for (let i = 0; i < retries; i++) {
+    try {
+      return await rpcOnce(url, method, params, timeoutMs);
+    } catch (err) {
+      last = err;
+      const msg = String(err.message || err);
+      if (!/HTTP 429|HTTP 503/.test(msg) || i === retries - 1) throw err;
+      await new Promise((r) => setTimeout(r, 1000 * 2 ** i));
+    }
+  }
+  throw last;
 }
 
 export async function ethCall(url, to, data) {

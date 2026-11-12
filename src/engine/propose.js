@@ -290,13 +290,13 @@ function blocked(code, { flags, reasons, neverAutoSpend, totalE8 = 0n }) {
   };
 }
 
-function fmtUsd(e8) {
-  const neg = e8 < 0n;
-  const v = neg ? -e8 : e8;
+export function fmtUsd(e8) {
+  const v0 = BigInt(e8);
+  const neg = v0 < 0n;
+  const v = neg ? -v0 : v0;
   const whole = v / NAV_SCALE;
-  const frac = (v % NAV_SCALE).toString().padStart(8, "0").replace(/0+$/, "") ;
-  const num = frac ? `${whole}.${frac}` : `${whole}`;
-  return `${neg ? "-" : ""}$${num}`;
+  const cents = (v % NAV_SCALE).toString().padStart(8, "0").slice(0, 2);
+  return `${neg ? "-" : ""}$${whole.toLocaleString("en-US")}.${cents}`;
 }
 
 function brief(action, reasons, flags, trades, neverAutoSpend, totalE8) {
