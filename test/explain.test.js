@@ -96,4 +96,29 @@ describe("explainProposal", () => {
     assert.equal(blocked.title, "Blocked — no proposal");
     assert.match(blocked.paragraphs.join(" "), /blocked/i);
   });
+
+  it("mentions paused features and a wide premium, still without AI", () => {
+    const snapshot = {
+      at: 1,
+      assets: {
+        AAPLc: asset({ symbol: "AAPLc", paused: true, pausedFeatures: ["transfer"] }),
+        NVDAc: asset({ symbol: "NVDAc", marketE8: 110n * 10n ** 8n }),
+      },
+    };
+    const mandate = {
+      universe: ["AAPLc", "NVDAc"],
+      maxWeightBps: 5000,
+      cashSleeveBps: 1000,
+      rebalanceThresholdBps: 200,
+      neverAutoSpend: true,
+      cashE8: 1000n * 10n ** 8n,
+      positions: [],
+    };
+    const proposal = proposeRebalance(mandate, snapshot);
+    const out = explainProposal(proposal, mandate, snapshot);
+    const text = out.paragraphs.join(" ");
+    assert.match(text, /Paused features on AAPLc/);
+    assert.match(text, /100 bps away from official NAV on NVDAc/);
+    assert.doesNotMatch(text, /\bAI\b/i);
+  });
 });

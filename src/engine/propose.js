@@ -4,8 +4,25 @@
  * or from src/data/snapshot.js. Never executes a trade.
  */
 import { BPS_DENOM, NAV_SCALE, WAD } from "../constants.js";
+import { premiumFlag } from "./premium.js";
 
 const DUST_E8 = 1_00_000_000n; // $1 at 8 decimals — ignore smaller deltas
+
+function cannotBuy(asset) {
+  return !asset || asset.missing || asset.stale || asset.pendingCorporateAction || asset.paused;
+}
+
+function cannotSell(asset) {
+  return Boolean(asset?.paused);
+}
+
+function skipWhy(asset) {
+  if (!asset || asset.missing) return "unpriced";
+  if (asset.paused) return "paused features";
+  if (asset.stale) return "stale NAV";
+  if (asset.pendingCorporateAction) return "pending corporate action";
+  return "unpriced";
+}
 
 export function uiAmount(raw, multiplierWad, decimals) {
   // UI shares, still in token decimals: raw * multiplier / WAD
@@ -52,7 +69,7 @@ export function targetValues(universe, totalE8, { maxWeightBps, cashSleeveBps })
  * @param {boolean} [mandate.neverAutoSpend=true]
  * @param {bigint|number|string} mandate.cashE8  cash in 1e8 USD units
  * @param {{symbol:string, raw:bigint|number|string}[]} mandate.positions
- * @param {object} snapshot  { at, assets: { [symbol]: { navE8, uiMultiplierWad, decimals, stale, pendingCorporateAction, heldOffHours } } }
+ * @param {object} snapshot  { at, assets: { [symbol]: { navE8, uiMultiplierWad, decimals, stale, pendingCorporateAction, heldOffHours, paused, pausedFeatures, marketE8, premiumBps } } }
  */
 export function proposeRebalance(mandate, snapshot, { nowSec } = {}) {
   const universe = [...new Set(mandate.universe)];
@@ -102,6 +119,18 @@ export function proposeRebalance(mandate, snapshot, { nowSec } = {}) {
         detail: `Pending uiMultiplier ${asset.pending?.newUIMultiplierWad} at ${asset.pending?.effectiveAt}`,
       });
     }
+    if (asset.paused) {
+      const features = Array.isArray(asset.pausedFeatures) && asset.pausedFeatures.length
+        ? asset.pausedFeatures.join(", ")
+        : "unspecified";
+      flags.push({
+        symbol,
+        type: "paused",
+        detail: `Paused features: ${features}.`,
+      });
+    }
+    const prem = premiumFlag(symbol, asset);
+    if (prem?.flag) flags.push(prem.flag);
   }
 
   const totalE8 = pricedValue + cashE8;
@@ -131,15 +160,21 @@ export function proposeRebalance(mandate, snapshot, { nowSec } = {}) {
     cashSleeveBps: mandate.cashSleeveBps,
   });
 
-  // Do not buy a name that is stale or has a pending corporate action.
+  // Do not buy a name that is stale, paused, or has a pending corporate action.
+  // Do not sell a paused name either — leave it at its current value.
   // Leftover target value stays as cash.
   for (const symbol of universe) {
     const asset = assets[symbol];
-    const skipBuy = asset?.stale || asset?.pendingCorporateAction || !asset || asset.missing;
-    if (skipBuy && (targets[symbol] ?? 0n) > (valued[symbol]?.valueE8 ?? 0n)) {
-      const why = asset?.stale ? "stale NAV" : asset?.pendingCorporateAction ? "pending corporate action" : "unpriced";
-      reasons.push(`Skipping buy of ${symbol}: ${why}.`);
-      targets[symbol] = valued[symbol]?.valueE8 ?? 0n;
+    const cur = valued[symbol]?.valueE8 ?? 0n;
+    const tgt = targets[symbol] ?? 0n;
+    if (asset?.paused) {
+      reasons.push(`Holding ${symbol} unchanged: ${skipWhy(asset)}.`);
+      targets[symbol] = cur;
+      continue;
+    }
+    if (cannotBuy(asset) && tgt > cur) {
+      reasons.push(`Skipping buy of ${symbol}: ${skipWhy(asset)}.`);
+      targets[symbol] = cur;
     }
   }
   let allocated = 0n;
@@ -199,8 +234,12 @@ export function proposeRebalance(mandate, snapshot, { nowSec } = {}) {
     if (abs < DUST_E8) continue;
 
     const side = signed > 0n ? "buy" : "sell";
-    if (side === "buy" && (asset?.stale || asset?.pendingCorporateAction)) {
-      reasons.push(`Skipping buy of ${symbol}: ${asset.stale ? "stale NAV" : "pending corporate action"}.`);
+    if (side === "buy" && cannotBuy(asset)) {
+      reasons.push(`Skipping buy of ${symbol}: ${skipWhy(asset)}.`);
+      continue;
+    }
+    if (side === "sell" && cannotSell(asset)) {
+      reasons.push(`Skipping sell of ${symbol}: ${skipWhy(asset)}.`);
       continue;
     }
     if (!asset?.navE8) continue;

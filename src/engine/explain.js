@@ -108,6 +108,27 @@ function observe(snapshot, proposal) {
       `Feeds for ${held.map((a) => a.symbol).join(", ")} are holding a last close (off-hours is normal for these 24/5 equity feeds). That is a flag, not a block.`,
     );
   }
+  const paused = names.filter((a) => a.paused);
+  if (paused.length) {
+    bits.push(
+      `Paused features on ${paused.map((a) => a.symbol).join(", ")}: the steward will not trade ${paused.length === 1 ? "that name" : "those names"} until the pause lifts.`,
+    );
+  }
+  const wide = names.filter((a) => {
+    const bps = a.premiumBps != null ? Number(a.premiumBps) : null;
+    if (bps === null || !Number.isFinite(bps)) {
+      if (a.marketE8 == null || a.navE8 == null) return false;
+      const nav = BigInt(a.navE8);
+      if (nav <= 0n) return false;
+      return absBps(a.marketE8, nav) >= 100;
+    }
+    return Math.abs(bps) >= 100;
+  });
+  if (wide.length) {
+    bits.push(
+      `Secondary-market price is at least 100 bps away from official NAV on ${wide.map((a) => a.symbol).join(", ")}. This is a flag, not a block.`,
+    );
+  }
   void proposal;
   return bits.join(" ");
 }
@@ -145,3 +166,9 @@ function weightHighlights(proposal) {
 }
 
 export { pct, wadFmt };
+
+function absBps(marketE8, nav) {
+  const market = BigInt(marketE8);
+  const diff = market >= nav ? market - nav : nav - market;
+  return Number((diff * 10_000n) / nav);
+}

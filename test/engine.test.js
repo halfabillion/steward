@@ -266,4 +266,51 @@ describe("proposeRebalance", () => {
     const out = proposeRebalance(mandate, priced);
     assert.equal(out.neverAutoSpend, true);
   });
+
+  it("flags a paused name and will not trade it", () => {
+    const snap = snapshot({
+      AAPLc: asset(),
+      NVDAc: asset({ paused: true, pausedFeatures: ["transfer"] }),
+    });
+    const mandate = {
+      universe: ["AAPLc", "NVDAc"],
+      maxWeightBps: 5000,
+      cashSleeveBps: 1000,
+      rebalanceThresholdBps: 200,
+      cashE8: 1000n * 10n ** 8n,
+      positions: [],
+    };
+    const out = proposeRebalance(mandate, snap);
+    assert.equal(out.action, "rebalance");
+    assert.equal(out.trades.some((t) => t.symbol === "NVDAc"), false);
+    assert.ok(out.trades.some((t) => t.symbol === "AAPLc" && t.side === "buy"));
+    assert.ok(out.flags.some((f) => f.type === "paused" && f.symbol === "NVDAc"));
+    assert.match(out.brief, /Holding NVDAc unchanged/);
+    assert.equal(out.target.NVDAc.valueE8, 0n);
+    assert.ok(out.target.cash.weightBps > 1000);
+  });
+
+  it("flags a wide DEX premium but still proposes the trade", () => {
+    const snap = snapshot({
+      AAPLc: asset({ marketE8: 102n * 10n ** 8n }),
+      NVDAc: asset({ marketE8: 98n * 10n ** 8n }),
+    });
+    const mandate = {
+      universe: ["AAPLc", "NVDAc"],
+      maxWeightBps: 5000,
+      cashSleeveBps: 1000,
+      rebalanceThresholdBps: 200,
+      cashE8: 100n * 10n ** 8n,
+      positions: [
+        { symbol: "AAPLc", raw: rawForUsd(900) },
+        { symbol: "NVDAc", raw: 0n },
+      ],
+    };
+    const out = proposeRebalance(mandate, snap);
+    assert.equal(out.action, "rebalance");
+    assert.ok(out.flags.some((f) => f.type === "dex_premium" && f.symbol === "AAPLc"));
+    assert.ok(out.flags.some((f) => f.type === "dex_discount" && f.symbol === "NVDAc"));
+    assert.ok(out.trades.some((t) => t.symbol === "NVDAc" && t.side === "buy"));
+  });
+
 });

@@ -1,0 +1,98 @@
+{
+  "source": "https://api.coinbase.com/v1/tokenized-stocks",
+  "fetched_at_uk": "2026-11-14 01:57 GMT (Europe/London)",
+  "note": "Official Tokenized Stocks API, no key. Heavy fields (description, icon_url) omitted. Used as an offline fixture when a live fetch is unavailable.",
+  "tokens": [
+    {
+      "symbol": "AAPLc",
+      "name": "Apple Inc.",
+      "contract_address": "0xb200000000000000000000C2e324d24d7eEcd1fb",
+      "decimals": 8,
+      "multiplier": 1,
+      "nav_price": 355.585,
+      "nav_price_updated_at": "2026-11-13T21:05:53Z",
+      "isin": "US0378331005",
+      "adgm_isin": "AE000A4AV8C6",
+      "first_mint_date": "2026-08-12T12:54:19Z",
+      "total_supply": 6000.17259753
+    },
+    {
+      "symbol": "AMZNc",
+      "name": "Amazon.com Inc.",
+      "contract_address": "0xb200000000000000000000d9192b6B456483C2E8",
+      "decimals": 8,
+      "multiplier": 1,
+      "nav_price": 265.44725,
+      "nav_price_updated_at": "2026-11-13T21:04:28Z",
+      "isin": "US0231351067",
+      "adgm_isin": "AE000A4AWGV3",
+      "first_mint_date": "2026-09-03T18:06:13Z",
+      "total_supply": 7833.50295316
+    },
+    {
+      "symbol": "GOOGLc",
+      "name": "Alphabet Inc.",
+      "contract_address": "0xb2000000000000000000002D0BA3164cc74f58B7",
+      "decimals": 8,
+      "multiplier": 1.0003771186767842,
+      "nav_price": 294.89116703,
+      "nav_price_updated_at": "2026-11-13T15:37:14Z",
+      "isin": "US02079K3059",
+      "adgm_isin": "AE000A4AV8D4",
+      "first_mint_date": "2026-08-12T12:55:49Z",
+      "total_supply": 35372.00982128
+    },
+    {
+      "symbol": "METAc",
+      "name": "Meta Platforms Inc.",
+      "contract_address": "0xb2000000000000000000008bC8786B856E61707C",
+      "decimals": 8,
+      "multiplier": 1.0003137922895982,
+      "nav_price": 638.54030616,
+      "nav_price_updated_at": "2026-11-13T21:05:04Z",
+      "isin": "US30303M1027",
+      "adgm_isin": "AE000A4AV8B8",
+      "first_mint_date": "2026-08-12T12:52:33Z",
+      "total_supply": 8482.68154474
+    },
+    {
+      "symbol": "MSFTc",
+      "name": "Microsoft Corporation",
+      "contract_address": "0xB200000000000000000000Ab99cFa739E253872B",
+      "decimals": 8,
+      "multiplier": 1,
+      "nav_price": 522.405,
+      "nav_price_updated_at": "2026-11-13T21:03:29Z",
+      "isin": "US5949181045",
+      "adgm_isin": "AE000A4AWG17",
+      "first_mint_date": "2026-09-03T18:11:07Z",
+      "total_supply": 2696.70741505
+    },
+    {
+      "symbol": "NVDAc",
+      "name": "NVIDIA Corporation",
+      "contract_address": "0xb20000000000000000000078ee7ce2fE4908108C",
+      "decimals": 8,
+      "multiplier": 1.0005379395763694,
+      "nav_price": 160.76543559,
+      "nav_price_updated_at": "2026-11-13T23:36:23Z",
+      "isin": "US67066G1040",
+      "adgm_isin": "AE000A4AV8A0",
+      "first_mint_date": "2026-08-12T12:40:59Z",
+      "total_supply": 48956.76486631
+    },
+    {
+      "symbol": "TSLAc",
+      "name": "Tesla Inc.",
+      "contract_address": "0xb2000000000000000000001e800a7f5189430cD0",
+      "decimals": 8,
+      "multiplier": 1,
+      "nav_price": 387.793,
+      "nav_price_updated_at": "2026-11-13T21:32:29Z",
+      "isin": "US88160R1014",
+      "adgm_isin": "AE000A4AWG09",
+      "first_mint_date": "2026-09-03T18:16:27Z",
+      "total_supply": 6432.88183743
+    }
+  ]
+}

@@ -6,6 +6,11 @@ import {
 import { apiTimestampSec, listTokenizedStocks, multiplierToWad, navToE8 } from "./api.js";
 import { feedForSymbol, readB20, readChainlink, readNetwork } from "./onchain.js";
 
+export function pausedFromApi(row) {
+  const features = Array.isArray(row?.paused_features) ? [...row.paused_features] : [];
+  return { pausedFeatures: features, paused: features.length > 0 };
+}
+
 function freshness(updatedAt, nowSec, { staleAfterSec = STALE_AFTER_SEC, heldAfterSec = HELD_AFTER_SEC } = {}) {
   if (!updatedAt) {
     return { ageSec: null, stale: true, heldOffHours: false, reason: "missing_timestamp" };
@@ -89,6 +94,7 @@ export async function snapshotUniverse(symbols, {
       ...fresh,
       firstMintDate: row.first_mint_date ?? null,
       totalSupply: row.total_supply ?? null,
+      ...pausedFromApi(row),
     };
   }
 
@@ -100,3 +106,53 @@ function absDiff(a, b) {
 }
 
 export { freshness };
+
+/**
+ * Build a snapshot from official API list rows only (no RPC).
+ * Used for offline / API-only end-to-end tests and as a fallback when
+ * a public Mainnet RPC is unavailable. On-chain uiMultiplier and
+ * pending corporate actions are not available on this path.
+ */
+export function snapshotFromListed(listed, {
+  nowSec = Math.floor(Date.now() / 1000),
+  staleAfterSec = STALE_AFTER_SEC,
+  heldAfterSec = HELD_AFTER_SEC,
+} = {}) {
+  const assets = {};
+  for (const row of listed ?? []) {
+    const symbol = row.symbol;
+    if (!symbol) continue;
+    const apiNavE8 = navToE8(row.nav_price);
+    const apiNavAt = apiTimestampSec(row.nav_price_updated_at);
+    const apiMultWad = multiplierToWad(row.multiplier);
+    const missingNav = apiNavE8 === null;
+    const fresh = missingNav
+      ? { ageSec: null, stale: true, heldOffHours: false, reason: "missing_nav" }
+      : freshness(apiNavAt, nowSec, { staleAfterSec, heldAfterSec });
+    assets[symbol] = {
+      symbol,
+      name: row.name ?? symbol,
+      contract: row.contract_address ?? null,
+      isin: row.isin ?? row.adgm_isin ?? null,
+      decimals: Number(row.decimals ?? 8),
+      uiMultiplierWad: apiMultWad,
+      apiMultiplierWad: apiMultWad,
+      multiplierMatch: true,
+      pendingCorporateAction: false,
+      pending: null,
+      navE8: apiNavE8,
+      navUpdatedAt: apiNavAt,
+      navSource: "api",
+      apiNavE8,
+      apiNavUpdatedAt: apiNavAt,
+      navMatch: null,
+      chainlink: null,
+      missing: missingNav,
+      firstMintDate: row.first_mint_date ?? null,
+      totalSupply: row.total_supply ?? null,
+      ...pausedFromApi(row),
+      ...fresh,
+    };
+  }
+  return { at: nowSec, network: { source: "api" }, assets };
+}
