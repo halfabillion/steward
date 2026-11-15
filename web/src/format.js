@@ -56,3 +56,18 @@ export function shares(raw, decimals = 8) {
   const frac = (v % scale).toString().padStart(d, "0").replace(/0+$/, "").slice(0, 4);
   return frac ? `${whole}.${frac}` : `${whole}`;
 }
+
+export function signedBps(bps) {
+  if (bps === undefined || bps === null) return "—";
+  const n = Number(bps);
+  return `${n > 0 ? "+" : ""}${n} bps`;
+}
+
+/** "aero USDC · $546k liq · 14:34 UTC" for a DEX market record. */
+export function dexNote(m) {
+  if (!m) return "";
+  const liq = Number(m.liquidityUsd || 0);
+  const liqTxt = liq >= 1e6 ? `$${(liq / 1e6).toFixed(1)}m` : `$${Math.round(liq / 1e3)}k`;
+  const t = m.fetchedAt ? new Date(Number(m.fetchedAt) * 1000).toISOString().slice(11, 16) + " UTC" : "";
+  return [`${m.dexId || "dex"} ${m.quoteSymbol || ""}`.trim(), `${liqTxt} liq`, t].filter(Boolean).join(" · ");
+}

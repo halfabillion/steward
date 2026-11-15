@@ -361,6 +361,7 @@ input[type="checkbox"] {
 }
 .flag.stale, .flag.pending_corporate_action, .flag.unpriced { background: var(--red-soft); color: #ffb4b4; }
 .flag.held_off_hours { background: var(--amber-soft); color: var(--amber); }
+.flag.dex_premium { background: var(--amber-soft); color: var(--amber); }
 
 .banner {
   display: flex;

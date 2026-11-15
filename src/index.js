@@ -4,3 +4,4 @@ export { readB20, readChainlink, readNetwork } from "./data/onchain.js";
 export { snapshotFromListed, snapshotUniverse } from "./data/snapshot.js";
 export { proposeRebalance, targetValues, uiAmount, positionValueE8 } from "./engine/propose.js";
 export { premiumBps, premiumFlag } from "./engine/premium.js";
+export { attachDexMarket, pickDeepestPair, readDexMarket } from "./data/dex.js";

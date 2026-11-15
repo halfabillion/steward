@@ -44,7 +44,12 @@ async function main() {
   await log.waitForDeployment();
   const contractAddress = await log.getAddress();
 
-  const { snapshotUniverse } = await import("../src/data/snapshot.js");
+  const { snapshotUniverse: snapshotUniverseRaw } = await import("../src/data/snapshot.js");
+  // Live demo: attach the read-only DEX premium (DexScreener public API, no key).
+  // Set STEWARD_DEX=0 to turn it off. It is a flag only and never blocks a trade.
+  const DEX_ON = process.env.STEWARD_DEX !== "0";
+  const snapshotUniverse = (symbols, opts = {}) =>
+    snapshotUniverseRaw(symbols, { dexMarket: DEX_ON, ...opts });
   const { DEMO_UNIVERSE, NAV_SCALE } = await import("../src/constants.js");
   const { proposeRebalance } = await import("../src/engine/propose.js");
   const { explainProposal } = await import("../src/engine/explain.js");

@@ -1,4 +1,4 @@
-import { age, pctBps, shares, usd, wad } from "../format.js";
+import { age, dexNote, pctBps, shares, signedBps, usd, wad } from "../format.js";
 
 export default function Portfolio({ snapshot, mandate, lastRun, onRefresh, onRun, busy }) {
   const assets = snapshot?.assets || {};
@@ -15,6 +15,9 @@ export default function Portfolio({ snapshot, mandate, lastRun, onRefresh, onRun
       <p className="sub">
         Live Mainnet reads: Chainlink total-return NAV and on-chain B20 multipliers.
         The book itself is paper, held in this session.
+        {snapshot?.dexMarket
+          ? ` DEX vs NAV: ${snapshot.dexMarket.source} public API (no key), deepest USD-stable pool ≥ $${Number(snapshot.dexMarket.minLiquidityUsd).toLocaleString("en-US")} liquidity, read ${new Date(snapshot.dexMarket.at * 1000).toISOString().slice(11, 16)} UTC. A flag, never a block.`
+          : " DEX premium not read for this snapshot."}
       </p>
       <div className="row">
         <button className="btn ghost" disabled={busy} onClick={onRefresh}>
@@ -42,6 +45,7 @@ export default function Portfolio({ snapshot, mandate, lastRun, onRefresh, onRun
               <th>Source</th>
               <th>Age</th>
               <th>Status</th>
+              <th className="r">DEX vs NAV</th>
               <th className="r">UI shares</th>
               <th className="r">Value</th>
               <th className="r">Weight</th>
@@ -69,6 +73,20 @@ export default function Portfolio({ snapshot, mandate, lastRun, onRefresh, onRun
                   {!a.stale && !a.heldOffHours && !a.missing && <span className="hint">fresh</span>}
                   {a.missing && <span className="flag unpriced">missing</span>}
                 </td>
+                <td className="r">
+                  {a.market?.ok && a.premiumBps != null ? (
+                    <>
+                      <div className={`num${Math.abs(Number(a.premiumBps)) >= 100 ? " flag dex_premium" : ""}`}>
+                        {signedBps(a.premiumBps)}
+                      </div>
+                      <div className="hint">{usd(a.marketE8)} · {dexNote(a.market)}</div>
+                    </>
+                  ) : a.market ? (
+                    <span className="hint" title={a.market.reason || ""}>no DEX market</span>
+                  ) : (
+                    <span className="hint">—</span>
+                  )}
+                </td>
                 <td className="num r">{alloc?.ui != null ? shares(alloc.ui, a.decimals) : pos ? shares(pos.raw, a.decimals) : "—"}</td>
                 <td className="num r">{alloc ? usd(alloc.valueE8) : "—"}</td>
                 <td className="r">
@@ -86,7 +104,7 @@ export default function Portfolio({ snapshot, mandate, lastRun, onRefresh, onRun
               </tr>
             ))}
             <tr>
-              <td colSpan={6}>Cash</td>
+              <td colSpan={7}>Cash</td>
               <td className="num r">—</td>
               <td className="num r">{current?.cash ? usd(current.cash.valueE8) : mandate?.cashE8 ? usd(mandate.cashE8) : "—"}</td>
               <td className="num r">{current?.cash ? pctBps(current.cash.weightBps) : "—"}</td>

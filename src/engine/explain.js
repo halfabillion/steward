@@ -129,6 +129,8 @@ function observe(snapshot, proposal) {
       `Secondary-market price is at least 100 bps away from official NAV on ${wide.map((a) => a.symbol).join(", ")}. This is a flag, not a block.`,
     );
   }
+  const dex = dexSummary(snapshot, names);
+  if (dex) bits.push(dex);
   void proposal;
   return bits.join(" ");
 }
@@ -163,6 +165,39 @@ function weightHighlights(proposal) {
     rows.push(`cash is at ${pct(cur.cash.weightBps)} against a target of ${pct(tgt.cash.weightBps)}`);
   }
   return rows.length ? rows.join("; ") + "." : "";
+}
+
+function signedBps(bps) {
+  const n = Number(bps);
+  return `${n > 0 ? "+" : ""}${n} bps`;
+}
+
+function utcHm(sec) {
+  if (!sec) return "unknown time";
+  return new Date(Number(sec) * 1000).toISOString().slice(11, 16) + " UTC";
+}
+
+/** One sentence on the read-only DEX premium, only when a DEX read was attached. */
+function dexSummary(snapshot, names) {
+  const meta = snapshot?.dexMarket;
+  if (!meta) return null;
+  const priced = names.filter((a) => a.market?.ok && a.premiumBps != null);
+  const none = names.filter((a) => a.market && !(a.market.ok && a.premiumBps != null));
+  const parts = [];
+  if (priced.length) {
+    parts.push(
+      `Secondary market versus official NAV (${meta.source}, deepest USD-stable pool with at least $${Number(meta.minLiquidityUsd).toLocaleString("en-US")} liquidity, read ${utcHm(meta.at)}): ${priced
+        .map((a) => `${a.symbol} ${signedBps(a.premiumBps)} on ${a.market.dexId}`)
+        .join(", ")}.`,
+    );
+    if (priced.some((a) => a.market.navHeldOffHours)) {
+      parts.push("Where NAV is holding a last close, the gap includes off-hours DEX trading since that close.");
+    }
+  }
+  if (none.length) {
+    parts.push(`No DEX market for ${none.map((a) => a.symbol).join(", ")}, so no premium is shown there.`);
+  }
+  return parts.join(" ") || null;
 }
 
 export { pct, wadFmt };

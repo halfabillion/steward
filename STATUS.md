@@ -1,13 +1,43 @@
-# Steward — status (14 November 2026)
+# Steward — status (15 November 2026)
 
 **Project:** Steward, the primary Base Stocks Maxxing concept (Agentic Stock Finance).  
-**Updated:** Saturday 14 November 2026, 01:57 GMT (Europe/London, UTC+0).  
+**Updated:** Sunday 15 November 2026, 14:39 GMT (Europe/London, UTC+0). Earlier full update: Saturday 14 November 2026, 01:57 GMT.  
 **Tree:** `/workspace/money/hackathons/base-stocks/steward/` — local git only; no remote, no push, no GitHub.  
 **Plan:** `../PLAN.md`. Spike: `SPIKE.md`. 12 Nov core write-up: `CORE.md` (this file supersedes it for current state).
 
 This is a research-to-portfolio agent for Coinbase tokenized stocks on Base. Paper and a local Hardhat chain tagged 84532 only. Not a live product, not investment advice, not a brokerage, and not available in the United States.
 
 No spend, no mainnet transaction, no wallet install, no signing with a real wallet, no registration-form submit, no public repo, and no posts were made in this session.
+
+---
+
+## 0. Update — Sunday 15 November 2026 (UK time, GMT / UTC+0)
+
+**Live read-only DEX premium reader added.** The NAV-premium flag now works on live data, not only on test-injected `marketE8`.
+
+- **Source:** DexScreener public API, `GET https://api.dexscreener.com/latest/dex/tokens/<address>`. No key, no signup, no wallet, no gas. Token addresses come from the official Tokenized Stocks API, as before.
+- **Live check, Sun 15 Nov 2026 about 14:34–14:38 UK:** all 7 demo-basket tokens have real Base DEX pairs. The deepest USD-stable pool for each was an Aerodrome (`aero`) USDC pool. Premium is versus official NAV, which was the Friday 13 Nov close (Chainlink, matching the API exactly). Read at 14:37:38 UK:
+
+| Token | Official NAV (Fri close) | Deepest DEX price | Pool liquidity | Premium |
+| --- | --- | --- | --- | --- |
+| AAPLc | $355.5850 | $356.2109 | ~$547k | +17 bps |
+| AMZNc | $265.4472 | $262.8228 | ~$1.81m | −98 bps |
+| GOOGLc | $294.8912 | $291.9461 | ~$1.47m | −99 bps |
+| METAc | $638.5403 | $634.9219 | ~$872k | −56 bps |
+| MSFTc | $522.4050 | $519.7963 | ~$544k | −49 bps |
+| NVDAc | $160.7654 | $160.3288 | ~$1.44m | −27 bps |
+| TSLAc | $387.7930 | $386.2848 | ~$523k | −38 bps |
+
+  None reached the ±100 bps flag at that read. It is a weekend, so the gap includes DEX trading since the Friday close; the brief says so.
+- **Rules (`src/data/dex.js`):** only `chainId: base` pairs where the stock token is the **base** token (so the price means USDC per token) and the quote is USDC or USDbC. The deepest pool by `liquidity.usd` wins, with a $25,000 minimum. Price comes from `priceNative` (USDC per token, more decimals), falling back to `priceUsd`. There is an 8 s timeout per call, sequential calls, a 60 s in-memory cache (transport errors are not cached), and the reader never throws. Any failure gives `{ ok: false, note: "no DEX market" }`, so the premium stays unflagged.
+- **uiMultiplier:** official NAV (Chainlink / API) is per token (total return = share price × uiMultiplier). The DEX price is per whole token too, so the premium compares per token with per token, and the multiplier cancels. `market.perShareE8` divides the multiplier out for display only. A test checks that the per-share and per-token premiums agree on GOOGLc (multiplier ≈ 1.000377).
+- **Wiring:** `snapshotUniverse(symbols, { dexMarket: true | {opts} })`. The default is **off**, so tests stay deterministic. The local dev server turns it on (`STEWARD_DEX=0` turns it off). `attachDexMarket(snapshot)` also works on `snapshotFromListed` output. The premium is still a **flag, never a block**: a test injects an NVDAc price about +1,200 bps rich and the rebalance still proposes buying NVDAc.
+- **UI / brief:** the Portfolio table has a new "DEX vs NAV" column (signed bps, DEX price, pool, liquidity, read time in UTC, or "no DEX market"), with a source and time line above it. The "Why" brief adds one sentence listing premium bps per name and the source and time, and names any token with no DEX market.
+- **Verified end to end:** the local dev server (`/api/snapshot`, `/api/agent/run`, in-process Hardhat 84532 only) priced all 7 names on live Chainlink NAV with DEX premiums attached. The web bundle builds.
+- **Tests:** `npm test` gives **49** Node tests (35 earlier + 13 DEX unit tests on a committed, unmodified live fixture `test/fixtures/dexscreener-basket.json`, fetched 15 Nov 2026 14:34 UK, + 1 live smoke test that skips offline or with `STEWARD_SKIP_LIVE_API=1`) and **6** Hardhat tests, all green. Manual live table: `npm run dex:smoke`.
+- **Limitations:** DexScreener gives no per-price timestamp, so "read at" is our fetch time. Its `liquidity.usd` is its own estimate. 1 USDC is treated as $1. There is no depth or slippage model: this is a mid-price indicator, not an executable quote. DexScreener rate limits apply (7 calls per snapshot, cached for 60 s). It is a third-party aggregator; an eth_call pool read could replace it later. Off-hours NAV is held, so weekend premiums mostly show drift since the close, not mispricing.
+
+No spend, keys, wallet, deploy, signup, post or remote push. `.secrets/` was not read.
 
 ---
 
@@ -72,10 +102,10 @@ The local vertical slice works end to end.
 **This session (14 Nov), added on top of the 12 Nov core:**
 
 - API list `paused_features` is now carried into the snapshot. The engine **will not buy or sell** a paused name (position is held unchanged; leftover stays cash).
-- DEX / secondary-market premium versus official NAV is computed when a `marketE8` is present, and flagged at ±100 bps. It is **not a block**. There is still no live DEX / CoinGecko reader (kept lean; tests inject a market price).
+- DEX / secondary-market premium versus official NAV is computed when a `marketE8` is present, and flagged at ±100 bps. It is **not a block**. Since 15 Nov a live, read-only DexScreener reader supplies `marketE8` (see §0).
 - `snapshotFromListed` builds an engine snapshot from official API rows only, so the core loop can run without a public RPC.
 - A local end-to-end test hits the live Tokenized Stocks API (no key) when reachable, otherwise the committed fixture, then propose → explain → paper fill → second run holds. Live API succeeded in this session (358 list records; demo basket NAVs present).
-- Tests: **35** Node tests and **6** Hardhat contract tests, all green (`npm test`).
+- Tests: **49** Node tests (as of 15 Nov; 35 on 14 Nov) and **6** Hardhat contract tests, all green (`npm test`).
 
 **Default demo book:** $90,000 AAPLc + $10,000 cash, equal-weight 7-name universe (AAPLc, AMZNc, GOOGLc, METAc, MSFTc, NVDAc, TSLAc), 30% cap, 10% cash sleeve, 200 bps threshold.
 
@@ -85,7 +115,7 @@ The local vertical slice works end to end.
 - No Builder Code issued. `src/builderCode.js` leaves calldata unchanged until a real code exists (`BUILDER_CODE = null`). Do not invent a placeholder suffix.
 - No wallet connect (wagmi / OnchainKit) and no wallet install.
 - No public GitHub remote, no demo hosting, no X drafts posted, no registration or submission form sent.
-- No live DEX premium feed. No policy-registry / announcement-log historical query. IndexKit (backup concept) is not built. Steward remains the go path.
+- DEX premium is mid-price only (DexScreener, no depth model). No policy-registry / announcement-log historical query. IndexKit (backup concept) is not built. Steward remains the go path.
 
 **Testnet deployer (address only, from `CORE.md`):** `0xbad2aA8FFF3d577b08Ef9f128d45C1A807497e4F` — Base Sepolia (84532) only. Not funded, not used. **Never** send mainnet assets to it. The key file lives outside git (`.secrets/` is gitignored). Do not read or print it.
 

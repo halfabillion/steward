@@ -5,6 +5,7 @@ import {
 } from "../constants.js";
 import { apiTimestampSec, listTokenizedStocks, multiplierToWad, navToE8 } from "./api.js";
 import { feedForSymbol, readB20, readChainlink, readNetwork } from "./onchain.js";
+import { attachDexMarket } from "./dex.js";
 
 export function pausedFromApi(row) {
   const features = Array.isArray(row?.paused_features) ? [...row.paused_features] : [];
@@ -34,6 +35,7 @@ export async function snapshotUniverse(symbols, {
   nowSec = Math.floor(Date.now() / 1000),
   staleAfterSec = STALE_AFTER_SEC,
   heldAfterSec = HELD_AFTER_SEC,
+  dexMarket = false,
 } = {}) {
   const [network, listed] = await Promise.all([
     readNetwork(rpcUrl),
@@ -98,7 +100,11 @@ export async function snapshotUniverse(symbols, {
     };
   }
 
-  return { at: nowSec, network, assets };
+  const snap = { at: nowSec, network, assets };
+  // Optional, read-only DEX premium. Off by default so tests stay deterministic.
+  // Never throws and never blocks: a failed read leaves the premium unflagged.
+  if (dexMarket) await attachDexMarket(snap, dexMarket === true ? {} : dexMarket);
+  return snap;
 }
 
 function absDiff(a, b) {
