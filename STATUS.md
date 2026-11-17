@@ -1,13 +1,19 @@
-# Steward — status (17 November 2026, 11:50 UK)
+# Steward — status (17 November 2026, 14:15 UK)
 
 **Project:** Steward, the primary Base Stocks Maxxing concept (Agentic Stock Finance).  
 **Updated:** Tuesday 17 November 2026, Europe/London (GMT / UTC+0). Earlier updates: Sunday 15 November 2026, 14:39 GMT; Saturday 14 November 2026, 01:57 GMT.  
-**Tree:** `/workspace/money/hackathons/base-stocks/steward/` — local git only; no remote, no push, no GitHub.  
+**Tree:** `/workspace/money/hackathons/base-stocks/steward/`. Public repository: https://github.com/halfabillion/steward (GitHub `main` is the local `publish` branch; local `main` keeps `.github/workflows/ci.yml` and is not pushed).  
 **Plan:** `../PLAN.md`. Spike: `SPIKE.md`. 12 Nov core write-up: `CORE.md` (this file supersedes it for current state).
 
 This is a research-to-portfolio agent for Coinbase tokenized stocks on Base. Paper and a local Hardhat chain tagged 84532 only. Not a live product, not investment advice, not a brokerage, and not available in the United States.
 
-No spend, no mainnet transaction, no wallet install, no signing with a real wallet, no registration-form submit, no public repo, and no posts were made in this session.
+No spend of real funds, no mainnet transaction, no wallet install, and no signing with a real wallet in this work. The repo is public as of 17 November 2026, 14:15 UK. The application form is being submitted from the answers in `docs/SUBMISSION_DRAFT.md` (not sent from this tree). No X post was made in this session.
+
+---
+
+## 0. Update — Tuesday 17 November 2026, 14:15 UK (public repo)
+
+**Public repository:** https://github.com/halfabillion/steward (publish branch pushed as GitHub `main`; local `main` with `.github/workflows/ci.yml` was not pushed). Contract, deploy tx, and demo-write txs stay as in the 11:50 UK note and `docs/DEPLOYMENTS.md`. Application-form answers are in `docs/SUBMISSION_DRAFT.md` (product/demo URL = the repo). Form not submitted from this tree.
 
 ---
 

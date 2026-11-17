@@ -2,6 +2,8 @@
 
 Research-to-portfolio agent for Coinbase tokenized stocks on Base. Paper and testnet only. Never auto-spends. Not investment advice, not a brokerage, not available in the United States.
 
+Public repository: https://github.com/halfabillion/steward
+
 This folder is the local build for the Base Stocks Maxxing season (Agentic Stock Finance). Contest plan: `../PLAN.md`. Current status, deadline, judging criteria, remaining work, and questions for Ali: `STATUS.md`. Spike findings: `SPIKE.md`. 12 Nov core write-up: `CORE.md`.
 
 ```bash
@@ -48,6 +50,6 @@ The local `npm run demo` app still uses in-process Hardhat tagged 84532; it is n
 
 ## Contest notes
 
-Official Rules for Stocks Maxxing (checked 17 Nov 2026) do not require an AI-assistance disclosure. Steward’s engine is rule-based; the app copy does not claim a model. Application-form drafts (not submitted): `docs/SUBMISSION_DRAFT.md`. Public-repo readiness (not published): `docs/PUBLISH_READY.md`.
+Official Rules for Stocks Maxxing (checked 17 Nov 2026) do not require an AI-assistance disclosure. Steward’s engine is rule-based; the app copy does not claim a model. Application-form drafts (not submitted from this tree): `docs/SUBMISSION_DRAFT.md`.
 
-No public deploy, no faucet key in this tree, no wallet keys in the repo, no remote git. Do not add a GitHub remote, do not point Hardhat at a public chain, and do not send mainnet assets to the testnet deployer.
+Source is public at https://github.com/halfabillion/steward. The `StewardProposalLog` contract, deploy tx, and demo-write txs are listed in [Deploy (Base Sepolia)](#deploy-base-sepolia) and `docs/DEPLOYMENTS.md`. No faucet key or wallet keys are in this repo. Do not point Hardhat at a public chain, and do not send mainnet assets to the testnet deployer.

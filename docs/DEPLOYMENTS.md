@@ -1,8 +1,8 @@
 # Steward deployments
 
-Last updated: Tuesday 17 November 2026, 11:50 UK (Europe/London, GMT / UTC+0).
+Last updated: Tuesday 17 November 2026, 14:15 UK (Europe/London, GMT / UTC+0).
 
-The proposal-log contract is now on **Base Sepolia (chain id 84532)** only. There is still no public GitHub remote, and nothing was pushed.
+The proposal-log contract is on **Base Sepolia (chain id 84532)** only. Public repository: https://github.com/halfabillion/steward
 
 ## Network
 
