@@ -9,8 +9,8 @@
     "demo": "node scripts/demo.cjs",
     "spike": "node scripts/spike-reads.js",
     "dex:smoke": "node scripts/dex-smoke.js",
-    "test": "node --test test/engine.test.js test/explain.test.js test/builderCode.test.js test/eligibility.test.js test/hash.test.js test/paper.test.js test/premium.test.js test/snapshot.test.js test/e2e-local.test.js test/dex.test.js test/dex-live.test.js test/demoFlow.test.js && hardhat test",
-    "test:engine": "node --test test/engine.test.js test/explain.test.js test/builderCode.test.js test/eligibility.test.js test/hash.test.js test/paper.test.js test/premium.test.js test/snapshot.test.js test/e2e-local.test.js test/dex.test.js test/dex-live.test.js test/demoFlow.test.js",
+    "test": "node --test test/engine.test.js test/explain.test.js test/builderCode.test.js test/eligibility.test.js test/hash.test.js test/paper.test.js test/premium.test.js test/snapshot.test.js test/e2e-local.test.js test/dex.test.js test/dex-live.test.js test/demoFlow.test.js test/networkMode.test.js && hardhat test",
+    "test:engine": "node --test test/engine.test.js test/explain.test.js test/builderCode.test.js test/eligibility.test.js test/hash.test.js test/paper.test.js test/premium.test.js test/snapshot.test.js test/e2e-local.test.js test/dex.test.js test/dex-live.test.js test/demoFlow.test.js test/networkMode.test.js",
     "test:contracts": "hardhat test",
     "compile": "hardhat compile"
   },

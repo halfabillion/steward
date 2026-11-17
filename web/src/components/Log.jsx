@@ -1,21 +1,24 @@
 import { shortAddr, shortHash, when } from "../format.js";
+import TxLink from "./TxLink.jsx";
 
 const DEMO_KINDS = ["MandateSet", "Proposed", "Approved"];
 
-export default function Log({ events, status, onRefresh, onStart, complete, approved, rejected, busy }) {
+export default function Log({ events, status, onRefresh, onStart, complete, approved, rejected, busy, live }) {
   const kinds = new Set((events || []).map((e) => e.type || e.kind));
   const missing = DEMO_KINDS.filter((k) => !kinds.has(k));
   return (
     <section data-testid="log-panel">
       <h2 className="section">Step 4 — Proposal log</h2>
       <p className="sub">
-        StewardProposalLog on the in-process Hardhat network, tagged chain id 84532 (Base Sepolia’s
-        id, used here for realism). Nothing is deployed to a public chain.
+        {live
+          ? "StewardProposalLog on Base Sepolia (chain id 84532). Session events since this app started are listed below. Each transaction links to Blockscout. The contract never moves funds."
+          : "StewardProposalLog on the in-process Hardhat network, tagged chain id 84532 (Base Sepolia’s id, used here for realism). Nothing is deployed to a public chain."}
       </p>
       {complete && approved && (
         <div className="ok-banner" data-testid="demo-complete">
-          Demo complete. This local log shows MandateSet, Proposed, and Approved. The paper book
-          was updated on approval. No funds moved, and this contract is not on a public network.
+          {live
+            ? "Demo complete. This Base Sepolia log shows MandateSet, Proposed, and Approved, with Blockscout links in the Tx column. The paper book was updated on approval. No funds moved."
+            : "Demo complete. This local log shows MandateSet, Proposed, and Approved. The paper book was updated on approval. No funds moved, and this contract is not on a public network."}
         </div>
       )}
       {complete && rejected && !approved && (
@@ -30,7 +33,15 @@ export default function Log({ events, status, onRefresh, onStart, complete, appr
         </button>
         {status?.contract && (
           <span className="hint mono" data-testid="log-contract">
-            contract {status.contract} · owner {shortAddr(status.owner)} · agent {shortAddr(status.agent)}
+            contract{" "}
+            {live && status?.network?.contractUrl ? (
+              <a href={status.network.contractUrl} target="_blank" rel="noreferrer" data-testid="contract-link">
+                {status.contract}
+              </a>
+            ) : (
+              status.contract
+            )}{" "}
+            · owner {shortAddr(status.owner)} · agent {shortAddr(status.agent)}
             {status?.chainId || status?.network?.chainId
               ? ` · chain ${status.chainId ?? status.network.chainId}`
               : ""}
@@ -78,7 +89,9 @@ export default function Log({ events, status, onRefresh, onStart, complete, appr
                       {e.status ? <div>status {e.status}</div> : null}
                       {e.reason ? <div>{e.reason}</div> : null}
                     </td>
-                    <td className="mono hint">{shortHash(tx)}</td>
+                    <td className="mono hint">
+                      <TxLink hash={tx} url={e.txUrl} live={live} testid={`log-tx-link-${i}`} />
+                    </td>
                   </tr>
                 );
               })}

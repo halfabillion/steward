@@ -1,6 +1,6 @@
 # Steward deployments
 
-Last updated: Tuesday 17 November 2026, 14:15 UK (Europe/London, GMT / UTC+0).
+Last updated: Tuesday 17 November 2026, 20:55 UK (Europe/London, GMT / UTC+0).
 
 The proposal-log contract is on **Base Sepolia (chain id 84532)** only. Public repository: https://github.com/halfabillion/steward
 
@@ -66,6 +66,18 @@ Hashes are `keccak256` of these exact UTF-8 strings (no extra whitespace):
 - **researchHash:** `0x10ac4acdf94505e35858bea7addc4d6fc5128d14e99680dc8ec581a7b8ce7d97`
 - **proposalHash:** `0x126caa353f3ae12e36ecea0cd596edd5c90b60f8f4866cca5050dc8c05cb6d13`
 - On-chain proposal status after approve: **2 (Approved)**. All three receipts are status 0x1.
+
+
+
+## Live demo writes (17 Nov 2026, 20:50 UK)
+
+The demo app can opt in with `STEWARD_NETWORK=base-sepolia`. A recorded guided run (see `docs/video/STORYBOARD.md`) wrote:
+
+- setMandate [`0x7be716956ec28b76f6163d8936b5570e5b8daf5499279486e93a014e70bf02dd`](https://base-sepolia.blockscout.com/tx/0x7be716956ec28b76f6163d8936b5570e5b8daf5499279486e93a014e70bf02dd) (block 60133781, 20:50:25 UK)
+- propose [`0x3c953d3abe2e1fd175d7bb6594575b1f5ae44723447b86a29309628f18dff0ef`](https://base-sepolia.blockscout.com/tx/0x3c953d3abe2e1fd175d7bb6594575b1f5ae44723447b86a29309628f18dff0ef) (block 60133847, 20:50:38 UK)
+- approve [`0x79398e1b8b7d9ec31d4927782d2329292165978f245bfb4b70c9c7c2e7488d9f`](https://base-sepolia.blockscout.com/tx/0x79398e1b8b7d9ec31d4927782d2329292165978f245bfb4b70c9c7c2e7488d9f) (block 60133930, 20:50:54 UK)
+
+An earlier rehearsal setMandate from the first recorder pass: [`0x8c75c2c2dcab18c9b23917581b87a72028f2194d0e87767f0bcb42b3ca4bb6c2`](https://base-sepolia.blockscout.com/tx/0x8c75c2c2dcab18c9b23917581b87a72028f2194d0e87767f0bcb42b3ca4bb6c2) (20:47:21 UK). Remaining deployer balance after these writes: about 0.00009360 ETH. No other wallet was used.
 
 ## Balances after this session
 

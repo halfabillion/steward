@@ -1,4 +1,5 @@
 import { pctBps, shortHash, usd } from "../format.js";
+import TxLink from "./TxLink.jsx";
 
 export default function Proposal({
   lastRun,
@@ -15,6 +16,7 @@ export default function Proposal({
   maxRuns,
   setMaxRuns,
   busy,
+  live,
 }) {
   const p = lastRun?.proposal;
   const onchain = lastRun?.onchain;
@@ -58,7 +60,7 @@ export default function Proposal({
           </div>
         )}
         <Scheduler
-          onSchedule={onSchedule}
+          onSchedule={live ? undefined : onSchedule}
           onStop={onStop}
           schedule={schedule}
           intervalSec={intervalSec}
@@ -79,8 +81,8 @@ export default function Proposal({
           : "Step 2 — Proposal"}
       </h2>
       <p className="sub">
-        Review the reasons, then approve or reject. Approval records on the local log and, for a
-        rebalance, updates the paper book. No funds move.
+        Review the research brief and reasons, then approve or reject. Approval records on the
+        {live ? " Base Sepolia log" : " local log"} and, for a rebalance, updates the paper book. No funds move.
       </p>
       <div className={`banner ${action}`} data-testid="proposal-banner">
         <div>
@@ -91,7 +93,8 @@ export default function Proposal({
             {proposalId ? `id ${shortHash(proposalId)} · ` : "not yet on the log · "}
             body {shortHash(onchain?.proposalHash)}
             {onchain?.tagged ? " · Builder Code tagged" : " · Builder Code not issued"}
-            {onchain?.tx ? ` · tx ${shortHash(onchain.tx)}` : ""}
+            {onchain?.tx ? <> · tx <TxLink hash={onchain.tx} url={onchain.txUrl} live={live} testid="propose-tx-link" /></> : ""}
+            {onchain?.decisionTx ? <> · decision <TxLink hash={onchain.decisionTx} url={onchain.decisionTxUrl} live={live} testid="decision-tx-link" /></> : ""}
           </div>
         </div>
         {p.maxDriftBps != null && <div className="num">max drift {p.maxDriftBps} bps</div>}
@@ -110,8 +113,9 @@ export default function Proposal({
       )}
       {status === "Rejected" && (
         <div className="empty-warn" data-testid="fill-rejected">
-          Proposal rejected. The decision is on the local log, but the paper book was not updated.
-          To see a paper fill, run again and approve.
+          {live
+            ? "Proposal rejected. The decision is on Base Sepolia, but the paper book was not updated. To see a paper fill, run again and approve."
+            : "Proposal rejected. The decision is on the local log, but the paper book was not updated. To see a paper fill, run again and approve."}
         </div>
       )}
 
@@ -253,16 +257,22 @@ export default function Proposal({
         </button>
       </div>
 
-      <Scheduler
-        onSchedule={onSchedule}
-        onStop={onStop}
-        schedule={schedule}
-        intervalSec={intervalSec}
-        setIntervalSec={setIntervalSec}
-        maxRuns={maxRuns}
-        setMaxRuns={setMaxRuns}
-        busy={busy}
-      />
+      {live ? (
+        <p className="hint" data-testid="live-no-schedule">
+          Bounded schedules are disabled in live Base Sepolia mode so a timer cannot send testnet transactions.
+        </p>
+      ) : (
+        <Scheduler
+          onSchedule={onSchedule}
+          onStop={onStop}
+          schedule={schedule}
+          intervalSec={intervalSec}
+          setIntervalSec={setIntervalSec}
+          maxRuns={maxRuns}
+          setMaxRuns={setMaxRuns}
+          busy={busy}
+        />
+      )}
     </section>
   );
 }

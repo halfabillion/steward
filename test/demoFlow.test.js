@@ -200,3 +200,14 @@ describe("demoProgress", () => {
     );
   });
 });
+
+describe("demoProgress live Base Sepolia copy", () => {
+  it("keeps default local labels unless live is set", () => {
+    const local = demoProgress({});
+    assert.equal(local.nextLabel, "Save mandate to local log");
+    assert.match(local.message, /local log/);
+    const live = demoProgress({ live: true });
+    assert.equal(live.nextLabel, "Save mandate to Base Sepolia");
+    assert.match(live.message, /Base Sepolia/);
+  });
+});

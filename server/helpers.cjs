@@ -105,6 +105,14 @@ function parseNamed(log, receipt, name) {
   return null;
 }
 
+async function sendOnchain(deps, signer, data) {
+  if (typeof deps.sendTx === "function") {
+    return deps.sendTx({ signer, to: deps.contractAddress, data });
+  }
+  const tx = await signer.sendTransaction({ to: deps.contractAddress, data });
+  return tx.wait();
+}
+
 async function runOnce(deps) {
   const { state } = deps;
   const snap = await takeSnapshot(deps.snapshotUniverse, state.mandate);
@@ -118,9 +126,8 @@ async function runOnce(deps) {
     if (!onchainMandate.exists || onchainMandate.mandateHash !== mandateHash) {
       const data = deps.log.interface.encodeFunctionData("setMandate", [mandateHash]);
       const tagged = deps.withBuilderCode(data);
-      const tx = await deps.owner.sendTransaction({ to: deps.contractAddress, data: tagged.data });
-      await tx.wait();
-      state.mandateTx = { hash: tx.hash, mandateHash, tagged: tagged.tagged, tagReason: tagged.reason };
+      const rc = await sendOnchain(deps, deps.owner, tagged.data);
+      state.mandateTx = { hash: rc.hash, mandateHash, tagged: tagged.tagged, tagReason: tagged.reason };
     }
     const researchHash = deps.hashResearch(snap, proposal.flags);
     const proposalHash = deps.hashProposalBody(proposal);
@@ -128,8 +135,7 @@ async function runOnce(deps) {
       deps.owner.address, mandateHash, researchHash, proposalHash,
     ]);
     const tagged = deps.withBuilderCode(data);
-    const tx = await deps.agent.sendTransaction({ to: deps.contractAddress, data: tagged.data });
-    const rc = await tx.wait();
+    const rc = await sendOnchain(deps, deps.agent, tagged.data);
     const ev = parseNamed(deps.log, rc, "Proposed");
     onchain = {
       proposalId: ev?.args?.proposalId,
@@ -161,8 +167,7 @@ async function decide(kind, proposalId, deps) {
   const fn = kind === "approve" ? "approve" : "reject";
   const data = deps.log.interface.encodeFunctionData(fn, [proposalId]);
   const tagged = deps.withBuilderCode(data);
-  const tx = await deps.owner.sendTransaction({ to: deps.contractAddress, data: tagged.data });
-  const rc = await tx.wait();
+  const rc = await sendOnchain(deps, deps.owner, tagged.data);
   const want = idStr(proposalId);
   if (kind === "approve" && idStr(state.lastRun?.onchain?.proposalId) === want) {
     state.mandate = deps.applyPaper(state.mandate, state.lastRun.proposal, state.lastRun.snapshot);
@@ -187,13 +192,47 @@ async function decide(kind, proposalId, deps) {
   };
 }
 
-async function readLog(log) {
-  const [mandated, proposed, approved, rejected] = await Promise.all([
-    log.queryFilter(log.filters.MandateSet()),
-    log.queryFilter(log.filters.Proposed()),
-    log.queryFilter(log.filters.Approved()),
-    log.queryFilter(log.filters.Rejected()),
-  ]);
+async function sleep(ms) {
+  return new Promise((r) => setTimeout(r, ms));
+}
+
+async function withRetry(fn, attempts = 4) {
+  let last;
+  for (let i = 0; i < attempts; i++) {
+    try {
+      return await fn();
+    } catch (err) {
+      last = err;
+      const msg = String(err.message || err);
+      if (!/rate|limit|coalesce|-32007/i.test(msg) || i === attempts - 1) throw err;
+      await sleep(400 * (i + 1));
+    }
+  }
+  throw last;
+}
+
+async function queryFilterChunked(log, event, fromBlock = 0, chunk = 180) {
+  const provider = log.runner?.provider || log.provider;
+  if (!provider || typeof provider.getBlockNumber !== "function") {
+    return withRetry(() => log.queryFilter(event, fromBlock));
+  }
+  const toBlock = Number(await provider.getBlockNumber());
+  const startAt = Number(fromBlock) || 0;
+  const out = [];
+  for (let start = startAt; start <= toBlock; start += chunk) {
+    const end = Math.min(start + chunk - 1, toBlock);
+    out.push(...await withRetry(() => log.queryFilter(event, start, end)));
+    await sleep(60);
+  }
+  return out;
+}
+
+async function readLog(log, opts = {}) {
+  const fromBlock = opts.fromBlock ?? 0;
+  const mandated = await queryFilterChunked(log, log.filters.MandateSet(), fromBlock);
+  const proposed = await queryFilterChunked(log, log.filters.Proposed(), fromBlock);
+  const approved = await queryFilterChunked(log, log.filters.Approved(), fromBlock);
+  const rejected = await queryFilterChunked(log, log.filters.Rejected(), fromBlock);
   const txHash = (ev) => ev.log?.transactionHash ?? ev.transactionHash;
   const entries = [];
   for (const ev of mandated) {
@@ -243,4 +282,5 @@ module.exports = {
   runOnce,
   decide,
   readLog,
+  sendOnchain,
 };

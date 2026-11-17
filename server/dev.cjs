@@ -1,9 +1,11 @@
 "use strict";
 
 /**
- * One local process: in-process Hardhat (chain id 84532) + API + Vite.
- * Refuses any network that is not the in-process "hardhat" network.
- * Never deploys to a public chain. Never logs private keys.
+ * One process: API + Vite + a proposal log.
+ * Default: in-process Hardhat (chain id 84532). Never points at a public
+ * chain unless STEWARD_NETWORK=base-sepolia, in which case writes go to the
+ * existing StewardProposalLog on Base Sepolia after an in-app confirmation,
+ * a chain-id 84532 check, and a gas estimate. Never logs private keys.
  */
 const path = require("path");
 const express = require("express");
@@ -21,28 +23,57 @@ const {
   runOnce,
   decide,
   readLog,
+  sendOnchain,
 } = require("./helpers.cjs");
+const { startSepoliaLive } = require("./sepoliaLive.cjs");
 
 const LOCAL_CHAIN_ID = 84532n;
 const PORT = Number(process.env.STEWARD_PORT || 5173);
 const HOST = "127.0.0.1";
 
 async function main() {
-  if (hre.network.name !== "hardhat") {
-    throw new Error(`Refusing to start on network "${hre.network.name}". Local Hardhat only.`);
-  }
+  const { resolveNetwork, attachTxUrl, blockscoutAddressUrl, redactSecrets } = await import("../src/networkMode.js");
+  const network = resolveNetwork(process.env);
+
+  let owner, agent, log, contractAddress, chainId, sendTx, sessionFromBlock, liveBalance;
 
   await hre.run("compile");
-  const [owner, agent] = await hre.ethers.getSigners();
-  const net = await hre.ethers.provider.getNetwork();
-  if (net.chainId !== LOCAL_CHAIN_ID) {
-    throw new Error(`Refusing to start: expected chainId ${LOCAL_CHAIN_ID}, got ${net.chainId}`);
-  }
 
-  const Factory = await hre.ethers.getContractFactory("StewardProposalLog");
-  const log = await Factory.deploy();
-  await log.waitForDeployment();
-  const contractAddress = await log.getAddress();
+  if (network.live) {
+    const live = await startSepoliaLive(network);
+    owner = live.wallet;
+    agent = live.wallet; // propose is permissionless; the known owner signs every write
+    log = live.contract;
+    contractAddress = live.contractAddress;
+    chainId = BigInt(live.chainId);
+    sendTx = live.sendTx;
+    sessionFromBlock = live.sessionFromBlock;
+    if (process.env.STEWARD_LOG_FROM_BLOCK) {
+      const n = Number(process.env.STEWARD_LOG_FROM_BLOCK);
+      if (Number.isInteger(n) && n >= 0) sessionFromBlock = n;
+    }
+    liveBalance = live.balance;
+  } else {
+    if (hre.network.name !== "hardhat") {
+      throw new Error(`Refusing to start on network "${hre.network.name}". Local Hardhat only.`);
+    }
+    const [localOwner, localAgent] = await hre.ethers.getSigners();
+    const net = await hre.ethers.provider.getNetwork();
+    if (net.chainId !== LOCAL_CHAIN_ID) {
+      throw new Error(`Refusing to start: expected chainId ${LOCAL_CHAIN_ID}, got ${net.chainId}`);
+    }
+    const Factory = await hre.ethers.getContractFactory("StewardProposalLog");
+    const deployed = await Factory.deploy();
+    await deployed.waitForDeployment();
+    owner = localOwner;
+    agent = localAgent;
+    log = deployed;
+    contractAddress = await deployed.getAddress();
+    chainId = net.chainId;
+    sendTx = null;
+    sessionFromBlock = 0;
+    liveBalance = null;
+  }
 
   const { snapshotUniverse: snapshotUniverseRaw } = await import("../src/data/snapshot.js");
   // Live demo: attach the read-only DEX premium (DexScreener public API, no key).
@@ -83,6 +114,7 @@ async function main() {
     agent,
     contractAddress,
     state,
+    sendTx,
   });
 
   function publicSchedule() {
@@ -98,17 +130,26 @@ async function main() {
     };
   }
 
+  function withTxUrl(hash) {
+    return attachTxUrl(hash, network.live);
+  }
+
   function publicStatus() {
     return {
-      chainId: Number(net.chainId),
+      chainId: Number(chainId),
       network: {
-        name: "local-84532",
-        chainId: Number(net.chainId),
-        label: "Local Hardhat, tagged as Base Sepolia (84532). Not a public chain.",
+        name: network.name,
+        mode: network.mode,
+        live: network.live,
+        chainId: Number(chainId),
+        label: network.label,
+        explorerOrigin: network.explorerOrigin,
+        contractUrl: network.live ? blockscoutAddressUrl(contractAddress) : null,
       },
       contract: contractAddress,
       owner: owner.address,
       agent: agent.address,
+      sessionFromBlock: network.live ? sessionFromBlock : 0,
       builderCode: { status: BUILDER_CODE_STATUS, tagged: false },
       schedule: publicSchedule(),
     };
@@ -158,31 +199,43 @@ async function main() {
       const mandateHash = hashMandate(next);
       const data = log.interface.encodeFunctionData("setMandate", [mandateHash]);
       const tagged = withBuilderCode(data);
-      const tx = await owner.sendTransaction({ to: contractAddress, data: tagged.data });
-      const rc = await tx.wait();
+      const rc = await sendOnchain(runDeps(), owner, tagged.data);
       state.mandate = next;
       state.mandateTx = {
         hash: rc.hash,
         mandateHash,
         tagged: tagged.tagged,
         tagReason: tagged.reason,
+        txUrl: withTxUrl(rc.hash),
       };
       res.json(toJsonable({ mandate: next, tx: state.mandateTx, status: publicStatus() }));
     } catch (err) {
-      res.status(400).json({ error: String(err.message || err) });
+      res.status(400).json({ error: redactSecrets(String(err.message || err)) });
     }
   });
 
+  function enrichRun(result) {
+    if (result?.onchain) {
+      result.onchain.txUrl = withTxUrl(result.onchain.tx);
+      result.onchain.decisionTxUrl = withTxUrl(result.onchain.decisionTx);
+    }
+    if (state.mandateTx) state.mandateTx.txUrl = withTxUrl(state.mandateTx.hash);
+    return result;
+  }
+
   app.post("/api/agent/run", async (_req, res) => {
     try {
-      const result = await runOnce(runDeps());
+      const result = enrichRun(await runOnce(runDeps()));
       res.json(toJsonable(result));
     } catch (err) {
-      res.status(500).json({ error: String(err.message || err) });
+      res.status(500).json({ error: redactSecrets(String(err.message || err)) });
     }
   });
 
   app.post("/api/agent/schedule", (req, res) => {
+    if (network.live) {
+      return res.status(400).json({ error: "Bounded schedules are disabled in live Base Sepolia mode so a timer cannot send testnet transactions." });
+    }
     const intervalSec = Number(req.body?.intervalSec);
     const maxRuns = Number(req.body?.maxRuns);
     if (!Number.isInteger(maxRuns) || maxRuns < 1 || maxRuns > 6) {
@@ -228,25 +281,35 @@ async function main() {
 
   app.post("/api/proposals/:id/approve", async (req, res) => {
     try {
-      res.json(toJsonable(await decide("approve", req.params.id, runDeps())));
+      const result = await decide("approve", req.params.id, runDeps());
+      if (result.lastRun) enrichRun(result.lastRun);
+      result.txUrl = withTxUrl(result.tx);
+      res.json(toJsonable(result));
     } catch (err) {
-      res.status(400).json({ error: String(err.message || err) });
+      res.status(400).json({ error: redactSecrets(String(err.message || err)) });
     }
   });
 
   app.post("/api/proposals/:id/reject", async (req, res) => {
     try {
-      res.json(toJsonable(await decide("reject", req.params.id, runDeps())));
+      const result = await decide("reject", req.params.id, runDeps());
+      if (result.lastRun) enrichRun(result.lastRun);
+      result.txUrl = withTxUrl(result.tx);
+      res.json(toJsonable(result));
     } catch (err) {
-      res.status(400).json({ error: String(err.message || err) });
+      res.status(400).json({ error: redactSecrets(String(err.message || err)) });
     }
   });
 
   app.get("/api/log", async (_req, res) => {
     try {
-      res.json(toJsonable({ entries: await readLog(log), ...publicStatus() }));
+      const entries = (await readLog(log, { fromBlock: sessionFromBlock })).map((e) => ({
+        ...e,
+        txUrl: withTxUrl(e.tx),
+      }));
+      res.json(toJsonable({ entries, ...publicStatus() }));
     } catch (err) {
-      res.status(500).json({ error: String(err.message || err) });
+      res.status(500).json({ error: redactSecrets(String(err.message || err)) });
     }
   });
 
@@ -260,12 +323,22 @@ async function main() {
   app.use(vite.middlewares);
 
   const server = app.listen(PORT, HOST, () => {
-    console.log(`Steward local app  http://${HOST}:${PORT}`);
-    console.log(`Local chain id     ${net.chainId} (${hre.network.name}, in-process)`);
-    console.log(`Proposal log       ${contractAddress}`);
-    console.log(`Local owner        ${owner.address}`);
-    console.log(`Local agent        ${agent.address}`);
-    console.log("No private keys are written or printed. Not deployed to any public chain.");
+    console.log(`Steward app        http://${HOST}:${PORT}`);
+    if (network.live) {
+      console.log(`Network            Base Sepolia (${chainId}) — live testnet`);
+      console.log(`Proposal log       ${contractAddress}`);
+      console.log(`Deployer (public)  ${owner.address}`);
+      console.log(`Session from block ${sessionFromBlock}`);
+      if (liveBalance != null) console.log(`Deployer balance   ${require("ethers").formatEther(liveBalance)} ETH`);
+      console.log("Private key is read at runtime only and is never printed or logged.");
+      console.log("Each write checks chain id 84532 and estimated gas before signing.");
+    } else {
+      console.log(`Local chain id     ${chainId} (${hre.network.name}, in-process)`);
+      console.log(`Proposal log       ${contractAddress}`);
+      console.log(`Local owner        ${owner.address}`);
+      console.log(`Local agent        ${agent.address}`);
+      console.log("No private keys are written or printed. Not deployed to any public chain.");
+    }
   });
 
   const shutdown = () => {
@@ -278,7 +351,12 @@ async function main() {
   process.on("SIGTERM", shutdown);
 }
 
-main().catch((err) => {
-  console.error(err);
+main().catch(async (err) => {
+  try {
+    const { redactSecrets } = await import("../src/networkMode.js");
+    console.error(redactSecrets(err && err.stack ? err.stack : err));
+  } catch {
+    console.error("Startup failed.");
+  }
   process.exit(1);
 });

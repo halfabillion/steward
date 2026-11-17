@@ -46,7 +46,13 @@ The local network is **always chain id 84532** (Base Sepolia’s id, used here f
 - Verified on [Blockscout](https://base-sepolia.blockscout.com/address/0xA2cFFa3bdb2CD12dda441f1DA7139E050b733188?tab=contract) (Solidity 0.8.24, optimizer 200, cancun). Not verified on BaseScan (no API key was used).
 - Demo write (paper evidence only; the contract never moves funds): MandateSet [`0x8606005ba5138afbfc03fc618e8034af8ae9f8411a9189d578f5fa940747993a`](https://sepolia.basescan.org/tx/0x8606005ba5138afbfc03fc618e8034af8ae9f8411a9189d578f5fa940747993a), Proposed [`0x6221c7dd350870efe19b0a9047402aa327519c3a671de2faaceee9fa197aa1ba`](https://sepolia.basescan.org/tx/0x6221c7dd350870efe19b0a9047402aa327519c3a671de2faaceee9fa197aa1ba), Approved [`0x5ab6a7bf9f851cb6bc01de1e19f0295abc062a07b3938e34699cc64cf3f1bffa`](https://sepolia.basescan.org/tx/0x5ab6a7bf9f851cb6bc01de1e19f0295abc062a07b3938e34699cc64cf3f1bffa). Full hashes and the exact hashed JSON are in `docs/DEPLOYMENTS.md`.
 
-The local `npm run demo` app still uses in-process Hardhat tagged 84532; it is not this public-testnet deploy. The Hardhat config still has no public network URLs. Gated scripts: `STEWARD_DEPLOY=yes node scripts/deploy-sepolia.cjs` and `STEWARD_DEMO_WRITE=yes node scripts/demo-sepolia-write.cjs`.
+The local `npm run demo` app defaults to in-process Hardhat tagged 84532. To opt in to live Base Sepolia writes against the contract above:
+
+```bash
+STEWARD_NETWORK=base-sepolia npm run demo
+```
+
+The app then signs MandateSet / Proposed / Approved with the testnet deployer key file (`../.secrets/sepolia-deployer.key`, or `STEWARD_DEPLOYER_KEY_FILE`) after an in-app confirmation. It refuses to sign if the RPC reports any chain id other than 84532, and it estimates gas before each write and stops if the testnet balance is too low. The key is read at runtime only and is never printed, logged, or committed. Transaction rows link to Blockscout. Bounded schedules are disabled in live mode. The Hardhat config still has no public network URLs. Gated one-off scripts: `STEWARD_DEPLOY=yes node scripts/deploy-sepolia.cjs` and `STEWARD_DEMO_WRITE=yes node scripts/demo-sepolia-write.cjs`.
 
 ## Contest notes
 

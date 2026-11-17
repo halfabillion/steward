@@ -33,18 +33,12 @@ export default function App() {
   const [intervalSec, setIntervalSec] = useState(60);
   const [maxRuns, setMaxRuns] = useState(2);
 
+  const live = Boolean(status?.network?.live);
   const progress = useMemo(
-    () => demoProgress({ mandateTx, lastRun, events }),
-    [mandateTx, lastRun, events],
+    () => demoProgress({ mandateTx, lastRun, events, live }),
+    [mandateTx, lastRun, events, live],
   );
-
-  useEffect(() => {
-    const tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
-    api
-      .eligibility(tz)
-      .then(setElig)
-      .catch((e) => setError(e.message));
-  }, []);
+  const [pendingLive, setPendingLive] = useState(null);
 
   const applyStatus = useCallback((s) => {
     setStatus(s);
@@ -69,6 +63,20 @@ export default function App() {
 
   const loadStatus = useCallback(async () => {
     return applyStatus(await api.status());
+  }, [applyStatus]);
+
+  useEffect(() => {
+    const tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
+    api
+      .eligibility(tz)
+      .then(setElig)
+      .catch((e) => setError(e.message));
+    api
+      .health()
+      .then((h) => applyStatus(h))
+      .catch(() => {
+        /* health is optional on the gate; status is retried after enter */
+      });
   }, [applyStatus]);
 
   const refreshLog = useCallback(async () => {
@@ -115,12 +123,29 @@ export default function App() {
     }
   }
 
+  function confirmIfLive(label, fn) {
+    if (!live) return fn();
+    return new Promise((resolve) => {
+      setPendingLive({
+        label,
+        onConfirm: () => {
+          setPendingLive(null);
+          resolve(fn());
+        },
+        onCancel: () => {
+          setPendingLive(null);
+          resolve();
+        },
+      });
+    });
+  }
+
   async function saveMandate() {
     if (!form.universe?.length) {
       setError("Pick at least one name for the universe before saving the mandate.");
       return;
     }
-    await wrap("mandate", async () => {
+    await confirmIfLive("Save the mandate (setMandate) on StewardProposalLog, Base Sepolia. The contract does not move funds.", () => wrap("mandate", async () => {
       const holdingsUsd = {};
       for (const [k, v] of Object.entries(form.holdingsUsd || {})) {
         holdingsUsd[k] = Number(v) || 0;
@@ -138,7 +163,7 @@ export default function App() {
       await loadStatus();
       await refreshLog();
       setTab("proposal");
-    });
+    }));
   }
 
   async function refreshSnap() {
@@ -154,18 +179,19 @@ export default function App() {
       setTab("mandate");
       return;
     }
-    await wrap("run", async () => {
+    await confirmIfLive("Run the steward and write Proposed (and setMandate if needed) on Base Sepolia. The contract does not move funds.", () => wrap("run", async () => {
       const r = await api.runAgent();
       setLastRun(r);
       setSnapshot(r.snapshot);
       setTab("proposal");
       await loadStatus();
       await refreshLog();
-    });
+    }));
   }
 
   async function decide(kind, id) {
-    await wrap("decide", async () => {
+    const verb = kind === "approve" ? "approve" : "reject";
+    await confirmIfLive(`Record ${verb} on StewardProposalLog, Base Sepolia. The contract does not move funds. Approval only updates the paper book.`, () => wrap("decide", async () => {
       const r = kind === "approve" ? await api.approve(id) : await api.reject(id);
       setLastRun((prev) => ({
         ...(prev || {}),
@@ -176,7 +202,7 @@ export default function App() {
       await refreshLog();
       // Stay on the proposal tab so the paper-fill confirmation is visible.
       // The stepper CTA then takes the judge to the log.
-    });
+    }));
   }
 
   async function startSchedule() {
@@ -227,6 +253,7 @@ export default function App() {
         checked={checked}
         onToggle={(id) => setChecked((c) => ({ ...c, [id]: !c[id] }))}
         onEnter={() => setEntered(true)}
+        live={live}
       />
     );
   }
@@ -243,8 +270,8 @@ export default function App() {
         </div>
         <div className="meta">
           {status && (
-            <span className="chip ok" data-testid="chain-chip">
-              local · chain {chainId}
+            <span className={`chip ${live ? "live" : "ok"}`} data-testid="chain-chip">
+              {live ? "Base Sepolia" : "local"} · chain {chainId}
             </span>
           )}
           {status?.builderCode?.status === "not_issued" && (
@@ -272,6 +299,36 @@ export default function App() {
         ))}
       </nav>
       <main className="main">
+        {live && (
+          <div className="live-banner" data-testid="live-banner">
+            Live Base Sepolia mode. Writes go to{" "}
+            <a href={status?.network?.contractUrl} target="_blank" rel="noreferrer">
+              StewardProposalLog {status?.contract}
+            </a>{" "}
+            on chain 84532 after you confirm. Gas is estimated first; the contract never moves funds.
+          </div>
+        )}
+        {pendingLive && (
+          <div className="confirm-live" data-testid="confirm-live" role="dialog" aria-modal="true" aria-labelledby="confirm-live-title">
+            <div className="confirm-live-card">
+              <h2 id="confirm-live-title">Send a Base Sepolia transaction?</h2>
+              <p>
+                This writes to the existing StewardProposalLog on chain id 84532. The contract does
+                not move funds. Chain id and estimated gas are checked before signing; the transaction
+                is not sent if the testnet balance is too low.
+              </p>
+              <p className="hint">{pendingLive.label}</p>
+              <div className="row">
+                <button type="button" className="btn" data-testid="confirm-live-yes" onClick={pendingLive.onConfirm}>
+                  Send to Base Sepolia
+                </button>
+                <button type="button" className="btn ghost" data-testid="confirm-live-no" onClick={pendingLive.onCancel}>
+                  Cancel
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
         {error && (
           <div className="err" role="alert" data-testid="error-banner">
             <span>{error}</span>
@@ -295,6 +352,7 @@ export default function App() {
             busy={busy}
             mandateTx={mandateTx}
             snapshot={snapshot}
+            live={live}
           />
         )}
         {tab === "portfolio" && (
@@ -324,6 +382,7 @@ export default function App() {
             maxRuns={maxRuns}
             setMaxRuns={setMaxRuns}
             busy={busy}
+            live={live}
           />
         )}
         {tab === "log" && (
@@ -336,14 +395,17 @@ export default function App() {
             approved={progress.approved}
             rejected={progress.rejected}
             busy={busy}
+            live={live}
           />
         )}
       </main>
       <footer className="foot">
         Paper and testnet only. Never auto-spends. Not investment advice, not a brokerage, not an offer
         or solicitation. Tokenized stocks do not confer shareholder rights. Not available in the United
-        States. Steward is not endorsed by Coinbase, Base, or any issuer. Local log uses chain id 84532
-        (in-process Hardhat only — not a public deploy).
+        States. Steward is not endorsed by Coinbase, Base, or any issuer.{" "}
+        {live
+          ? "Live writes use StewardProposalLog on Base Sepolia (chain id 84532) after confirmation."
+          : "Local log uses chain id 84532 (in-process Hardhat only — not a public deploy)."}
       </footer>
     </div>
   );

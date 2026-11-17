@@ -116,13 +116,16 @@ export function demoProgress(input = {}) {
     return { ...step, status };
   });
 
+  const live = Boolean(input.live);
   let nextAction = null;
   let nextLabel = null;
   let message;
   if (current === "mandate") {
     nextAction = "save-mandate";
-    nextLabel = "Save mandate to local log";
-    message = DEMO_STEPS[0].hint;
+    nextLabel = live ? "Save mandate to Base Sepolia" : "Save mandate to local log";
+    message = live
+      ? "Keep the demo defaults (7-name basket, $90k AAPLc, $10k cash) and save them to StewardProposalLog on Base Sepolia (chain id 84532). You will confirm before a real testnet transaction is sent."
+      : DEMO_STEPS[0].hint;
   } else if (current === "proposal") {
     nextAction = "run";
     nextLabel = "Run steward";
@@ -144,10 +147,13 @@ export function demoProgress(input = {}) {
     nextLabel = "View the proposal log";
     message = rejected
       ? "Proposal rejected. The log still records the decision. To see a paper fill, run again and approve."
-      : DEMO_STEPS[3].hint;
+      : (live
+        ? "Open the proposal log and confirm MandateSet, Proposed, and Approved on Base Sepolia. Each row links to Blockscout."
+        : DEMO_STEPS[3].hint);
   } else {
-    message =
-      "Demo complete. The local log (chain id 84532, in-process Hardhat, not a public deploy) shows MandateSet, Proposed, and Approved. The paper book has been updated. No funds moved.";
+    message = live
+      ? "Demo complete. StewardProposalLog on Base Sepolia (chain id 84532) shows MandateSet, Proposed, and Approved, with Blockscout links in the history. The paper book has been updated. No funds moved."
+      : "Demo complete. The local log (chain id 84532, in-process Hardhat, not a public deploy) shows MandateSet, Proposed, and Approved. The paper book has been updated. No funds moved.";
   }
 
   const currentStep = DEMO_STEPS.find((s) => s.id === current) || null;

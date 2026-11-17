@@ -1,4 +1,4 @@
-# Steward — status (17 November 2026, 14:15 UK)
+# Steward — status (17 November 2026, 20:55 UK)
 
 **Project:** Steward, the primary Base Stocks Maxxing concept (Agentic Stock Finance).  
 **Updated:** Tuesday 17 November 2026, Europe/London (GMT / UTC+0). Earlier updates: Sunday 15 November 2026, 14:39 GMT; Saturday 14 November 2026, 01:57 GMT.  
@@ -8,6 +8,12 @@
 This is a research-to-portfolio agent for Coinbase tokenized stocks on Base. Paper and a local Hardhat chain tagged 84532 only. Not a live product, not investment advice, not a brokerage, and not available in the United States.
 
 No spend of real funds, no mainnet transaction, no wallet install, and no signing with a real wallet in this work. The repo is public as of 17 November 2026, 14:15 UK. The application form is being submitted from the answers in `docs/SUBMISSION_DRAFT.md` (not sent from this tree). No X post was made in this session.
+
+---
+
+## 0. Update — Tuesday 17 November 2026, 20:55 UK (live Sepolia demo mode)
+
+Opt-in live Base Sepolia mode is in the demo app: `STEWARD_NETWORK=base-sepolia npm run demo`. Local Hardhat stays the default. In-app confirmation, chain-id 84532 guard, and a gas estimate run before every write. A 2:29 silent screen-capture (title cards + captions, no voice) is at `docs/video/steward-base-sepolia-demo.mp4`. Live demo txs: setMandate `0x7be7169…f02dd`, propose `0x3c953d3…ff0ef`, approve `0x79398e1…88d9f`. Key never printed or committed. Not posted on X; final §5 form not submitted.
 
 ---
 

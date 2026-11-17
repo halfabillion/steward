@@ -1,4 +1,4 @@
-export default function Gate({ eligibility, checked, onToggle, onEnter, blocked }) {
+export default function Gate({ eligibility, checked, onToggle, onEnter, blocked, live }) {
   const allOn = eligibility.items?.every((i) => checked[i.id]);
   return (
     <div className="gate">
@@ -27,7 +27,8 @@ export default function Gate({ eligibility, checked, onToggle, onEnter, blocked 
               <p>
                 Coinbase tokenized stocks are available only to persons in eligible
                 jurisdictions outside the United States. Steward does not offer live
-                trading. Approvals are recorded on a local log (chain id 84532) and
+                trading. Approvals are recorded on a proposal log (chain id 84532
+                {live ? ", Base Sepolia" : ", in-process Hardhat"}) and
                 update a paper portfolio only.
               </p>
               <p>
@@ -52,8 +53,10 @@ export default function Gate({ eligibility, checked, onToggle, onEnter, blocked 
             </div>
             <p className="hint gate-demo-note">
               After you enter, a 4-step demo walks you from mandate to proposal,
-              paper fill, and the local proposal log (chain id 84532, in-process
-              Hardhat only — nothing is deployed to a public network).
+              paper fill, and the proposal log
+              {live
+                ? " on Base Sepolia (you will confirm each real testnet write)."
+                : " (chain id 84532, in-process Hardhat only — nothing is deployed to a public network)."}
             </p>
             <button className="btn" disabled={!allOn} onClick={onEnter} data-testid="enter-steward">
               Enter Steward

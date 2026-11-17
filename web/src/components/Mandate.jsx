@@ -1,8 +1,9 @@
 import { usd } from "../format.js";
+import TxLink from "./TxLink.jsx";
 
 const ALL = ["AAPLc", "AMZNc", "GOOGLc", "METAc", "MSFTc", "MSTRc", "NVDAc", "SNDKc", "SPCXc", "TSLAc"];
 
-export default function Mandate({ form, setForm, onSave, onResetDefaults, busy, mandateTx, snapshot }) {
+export default function Mandate({ form, setForm, onSave, onResetDefaults, busy, mandateTx, snapshot, live }) {
   const toggle = (sym) => {
     setForm((f) => {
       const has = f.universe.includes(sym);
@@ -111,7 +112,7 @@ export default function Mandate({ form, setForm, onSave, onResetDefaults, busy, 
             disabled={Boolean(busy) || emptyUniverse}
             onClick={onSave}
           >
-            {busy === "mandate" ? "Saving…" : "Save mandate to local log"}
+            {busy === "mandate" ? "Saving…" : live ? "Save mandate to Base Sepolia" : "Save mandate to local log"}
           </button>
           <button
             className="btn ghost"
@@ -124,14 +125,15 @@ export default function Mandate({ form, setForm, onSave, onResetDefaults, busy, 
           </button>
           {mandateTx && (
             <span className="hint mono" data-testid="mandate-saved">
-              Saved · hash {mandateTx.mandateHash?.slice(0, 10)}… · tx {mandateTx.hash?.slice(0, 10)}… ·{" "}
-              {mandateTx.tagged ? "Builder Code on" : "Builder Code not issued"}
+              Saved · hash {mandateTx.mandateHash?.slice(0, 10)}… · tx{" "}
+              <TxLink hash={mandateTx.hash} url={mandateTx.txUrl} live={live} testid="mandate-tx-link" />
+              {" "}· {mandateTx.tagged ? "Builder Code on" : "Builder Code not issued"}
             </span>
           )}
         </div>
         {mandateTx && (
           <div className="ok-banner" data-testid="mandate-next">
-            Mandate is on the local log. Next: run the steward to produce a proposal.
+            {live ? "Mandate is on Base Sepolia. Next: run the steward to produce a research brief and proposal." : "Mandate is on the local log. Next: run the steward to produce a proposal."}
           </div>
         )}
         {form.positions?.length ? (
