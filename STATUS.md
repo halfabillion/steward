@@ -1,4 +1,4 @@
-# Steward — status (17 November 2026)
+# Steward — status (17 November 2026, afternoon update)
 
 **Project:** Steward, the primary Base Stocks Maxxing concept (Agentic Stock Finance).  
 **Updated:** Tuesday 17 November 2026, Europe/London (GMT / UTC+0). Earlier updates: Sunday 15 November 2026, 14:39 GMT; Saturday 14 November 2026, 01:57 GMT.  
@@ -8,6 +8,18 @@
 This is a research-to-portfolio agent for Coinbase tokenized stocks on Base. Paper and a local Hardhat chain tagged 84532 only. Not a live product, not investment advice, not a brokerage, and not available in the United States.
 
 No spend, no mainnet transaction, no wallet install, no signing with a real wallet, no registration-form submit, no public repo, and no posts were made in this session.
+
+---
+
+## 0. Update — Tuesday 17 November 2026, 11:41 UK (deploy prep; not published)
+
+**Sepolia deploy was prepared, not executed.** The existing testnet deployer `0xbad2aA8FFF3d577b08Ef9f128d45C1A807497e4F` was reused (key still at `/workspace/money/hackathons/base-stocks/.secrets/sepolia-deployer.key`, mode 600). No new key was created. Base Sepolia balance is **0**. No faucet could be claimed from the shell without a login or a mainnet balance. Current Sepolia gas would make a single free CDP drip (0.0001 ETH) enough to deploy. A gated script `scripts/deploy-sepolia.cjs` and `docs/DEPLOYMENTS.md` are in the tree. The key was not printed, logged, or committed. No public-chain transaction was sent.
+
+**Public-repo readiness:** gitleaks found no leaks in the working tree or in all 8 git commits. trufflehog reported only unverified false positives on the DexScreener fixture. No history rewrite is needed. A local `publish` branch is prepared without `.github/workflows/ci.yml`. No GitHub repo was created and nothing was pushed. See `docs/PUBLISH_READY.md`.
+
+**Application form:** the only form linked from the Quest Page is still https://docs.google.com/forms/d/1zotYvkeAtDjR2MKk3qNxyNIAfJ_IPQtzTtjNhOAF8js/viewform (now titled “Application Form”). It does not collect an X post, video, or wallet signature. Draft answers, including X handle `@half_abillion` and payout `0xd9784f8122af988E51b3183F725b0b53BCb8278A`, are in `docs/SUBMISSION_DRAFT.md`. **Not submitted.** Official rules do not require an AI disclosure.
+
+No spend, no post, no form submit, no remote, no push.
 
 ---
 

@@ -34,4 +34,12 @@ The local network is **always chain id 84532** (Base Sepolia’s id, used here f
 
 17 Nov 2026 screenshots of this path: `docs/screenshots/2026-11-17/`. Earlier 12 Nov shots remain in `docs/screenshots/`.
 
-No public deploy, no faucet in this tree, no wallet keys in the repo, no remote git. Do not add a GitHub remote, do not point Hardhat at a public chain, and do not send mainnet assets to the testnet deployer (address in `CORE.md`).
+## Deploy (Base Sepolia, not done yet)
+
+The proposal-log contract is **not** on a public chain. The testnet-only deployer address is `0xbad2aA8FFF3d577b08Ef9f128d45C1A807497e4F` (unfunded as of 17 Nov 2026; never send mainnet assets to it). Status, faucet notes, and the gated deploy command: `docs/DEPLOYMENTS.md`. A future `STEWARD_DEPLOY=yes node scripts/deploy-sepolia.cjs` will record tx hashes and addresses there.
+
+## Contest notes
+
+Official Rules for Stocks Maxxing (checked 17 Nov 2026) do not require an AI-assistance disclosure. Steward’s engine is rule-based; the app copy does not claim a model. Application-form drafts (not submitted): `docs/SUBMISSION_DRAFT.md`. Public-repo readiness (not published): `docs/PUBLISH_READY.md`.
+
+No public deploy, no faucet key in this tree, no wallet keys in the repo, no remote git. Do not add a GitHub remote, do not point Hardhat at a public chain, and do not send mainnet assets to the testnet deployer.

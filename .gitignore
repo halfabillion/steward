@@ -12,3 +12,4 @@ web/dist/
 /data/
 .secrets/
 *.key
+secrets/
