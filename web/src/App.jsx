@@ -1,6 +1,8 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { demoMandateDefaults, demoProgress } from "../../src/demoFlow.js";
 import { api } from "./api.js";
 import { shortAddr } from "./format.js";
+import DemoGuide from "./components/DemoGuide.jsx";
 import Gate from "./components/Gate.jsx";
 import Mandate from "./components/Mandate.jsx";
 import Portfolio from "./components/Portfolio.jsx";
@@ -8,23 +10,11 @@ import Proposal from "./components/Proposal.jsx";
 import Log from "./components/Log.jsx";
 
 const TABS = [
-  { id: "mandate", label: "Mandate" },
+  { id: "mandate", label: "1. Mandate" },
   { id: "portfolio", label: "Portfolio" },
-  { id: "proposal", label: "Proposal" },
-  { id: "log", label: "On-chain log" },
+  { id: "proposal", label: "2–3. Proposal" },
+  { id: "log", label: "4. On-chain log" },
 ];
-
-function defaultForm() {
-  return {
-    universe: ["AAPLc", "AMZNc", "GOOGLc", "METAc", "MSFTc", "NVDAc", "TSLAc"],
-    maxWeightBps: 3000,
-    cashSleeveBps: 1000,
-    rebalanceThresholdBps: 200,
-    cashUsd: 10000,
-    holdingsUsd: { AAPLc: 90000 },
-    neverAutoSpend: true,
-  };
-}
 
 export default function App() {
   const [elig, setElig] = useState(null);
@@ -35,13 +25,18 @@ export default function App() {
   const [snapshot, setSnapshot] = useState(null);
   const [lastRun, setLastRun] = useState(null);
   const [events, setEvents] = useState([]);
-  const [form, setForm] = useState(defaultForm);
+  const [form, setForm] = useState(demoMandateDefaults);
   const [mandateTx, setMandateTx] = useState(null);
   const [busy, setBusy] = useState(null);
   const [error, setError] = useState(null);
   const [schedule, setSchedule] = useState(null);
   const [intervalSec, setIntervalSec] = useState(60);
   const [maxRuns, setMaxRuns] = useState(2);
+
+  const progress = useMemo(
+    () => demoProgress({ mandateTx, lastRun, events }),
+    [mandateTx, lastRun, events],
+  );
 
   useEffect(() => {
     const tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
@@ -121,6 +116,10 @@ export default function App() {
   }
 
   async function saveMandate() {
+    if (!form.universe?.length) {
+      setError("Pick at least one name for the universe before saving the mandate.");
+      return;
+    }
     await wrap("mandate", async () => {
       const holdingsUsd = {};
       for (const [k, v] of Object.entries(form.holdingsUsd || {})) {
@@ -138,6 +137,7 @@ export default function App() {
       setMandateTx(res.tx || res);
       await loadStatus();
       await refreshLog();
+      setTab("proposal");
     });
   }
 
@@ -149,6 +149,11 @@ export default function App() {
   }
 
   async function runAgent() {
+    if (!progress.hasMandate) {
+      setError("Save the mandate first (Step 1), then run the steward.");
+      setTab("mandate");
+      return;
+    }
     await wrap("run", async () => {
       const r = await api.runAgent();
       setLastRun(r);
@@ -169,6 +174,8 @@ export default function App() {
       }));
       await loadStatus();
       await refreshLog();
+      // Stay on the proposal tab so the paper-fill confirmation is visible.
+      // The stepper CTA then takes the judge to the log.
     });
   }
 
@@ -184,6 +191,24 @@ export default function App() {
       const r = await api.stopSchedule();
       setSchedule(r.schedule);
     });
+  }
+
+  async function onDemoPrimary() {
+    const action = progress.nextAction;
+    if (action === "save-mandate") return saveMandate();
+    if (action === "run") return runAgent();
+    if (action === "approve") {
+      const id = lastRun?.onchain?.proposalId;
+      if (!id) {
+        setError("No proposal id yet. Run the steward to write a rebalance to the local log.");
+        setTab("proposal");
+        return;
+      }
+      return decide("approve", id);
+    }
+    if (action === "view-log") {
+      setTab("log");
+    }
   }
 
   if (!elig) {
@@ -217,7 +242,11 @@ export default function App() {
           <span className="tag">research-to-portfolio agent · paper &amp; testnet only</span>
         </div>
         <div className="meta">
-          {status && <span className="chip ok">local · chain {chainId}</span>}
+          {status && (
+            <span className="chip ok" data-testid="chain-chip">
+              local · chain {chainId}
+            </span>
+          )}
           {status?.builderCode?.status === "not_issued" && (
             <span className="chip">Builder Code not issued</span>
           )}
@@ -232,15 +261,41 @@ export default function App() {
       </header>
       <nav className="tabs">
         {TABS.map((t) => (
-          <button key={t.id} className={tab === t.id ? "on" : ""} onClick={() => setTab(t.id)}>
+          <button
+            key={t.id}
+            className={tab === t.id ? "on" : ""}
+            data-testid={`tab-${t.id}`}
+            onClick={() => setTab(t.id)}
+          >
             {t.label}
           </button>
         ))}
       </nav>
       <main className="main">
-        {error && <div className="err">{error}</div>}
+        {error && (
+          <div className="err" role="alert" data-testid="error-banner">
+            <span>{error}</span>
+            <button type="button" className="err-dismiss" onClick={() => setError(null)} aria-label="Dismiss error">
+              Dismiss
+            </button>
+          </div>
+        )}
+        <DemoGuide
+          progress={progress}
+          onPrimary={onDemoPrimary}
+          onGoTab={setTab}
+          busy={busy}
+        />
         {tab === "mandate" && (
-          <Mandate form={form} setForm={setForm} onSave={saveMandate} busy={busy} mandateTx={mandateTx} snapshot={snapshot} />
+          <Mandate
+            form={form}
+            setForm={setForm}
+            onSave={saveMandate}
+            onResetDefaults={() => setForm(demoMandateDefaults())}
+            busy={busy}
+            mandateTx={mandateTx}
+            snapshot={snapshot}
+          />
         )}
         {tab === "portfolio" && (
           <Portfolio
@@ -249,17 +304,20 @@ export default function App() {
             lastRun={lastRun}
             onRefresh={refreshSnap}
             onRun={runAgent}
+            canRun={progress.hasMandate}
             busy={busy}
           />
         )}
         {tab === "proposal" && (
           <Proposal
             lastRun={lastRun}
+            hasMandate={progress.hasMandate}
             onApprove={(id) => decide("approve", id)}
             onReject={(id) => decide("reject", id)}
             onRun={runAgent}
             onSchedule={startSchedule}
             onStop={stopSchedule}
+            onViewLog={() => setTab("log")}
             schedule={schedule}
             intervalSec={intervalSec}
             setIntervalSec={setIntervalSec}
@@ -268,12 +326,24 @@ export default function App() {
             busy={busy}
           />
         )}
-        {tab === "log" && <Log events={events} status={status} onRefresh={refreshLog} busy={busy} />}
+        {tab === "log" && (
+          <Log
+            events={events}
+            status={status}
+            onRefresh={refreshLog}
+            onStart={() => setTab("mandate")}
+            complete={progress.complete}
+            approved={progress.approved}
+            rejected={progress.rejected}
+            busy={busy}
+          />
+        )}
       </main>
       <footer className="foot">
         Paper and testnet only. Never auto-spends. Not investment advice, not a brokerage, not an offer
         or solicitation. Tokenized stocks do not confer shareholder rights. Not available in the United
-        States. Steward is not endorsed by Coinbase, Base, or any issuer.
+        States. Steward is not endorsed by Coinbase, Base, or any issuer. Local log uses chain id 84532
+        (in-process Hardhat only — not a public deploy).
       </footer>
     </div>
   );

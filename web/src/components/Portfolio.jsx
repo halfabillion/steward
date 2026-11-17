@@ -1,6 +1,6 @@
 import { age, dexNote, pctBps, shares, signedBps, usd, wad } from "../format.js";
 
-export default function Portfolio({ snapshot, mandate, lastRun, onRefresh, onRun, busy }) {
+export default function Portfolio({ snapshot, mandate, lastRun, onRefresh, onRun, canRun = true, busy }) {
   const assets = snapshot?.assets || {};
   const current = lastRun?.proposal?.current;
   const rows = (mandate?.universe || Object.keys(assets)).map((sym) => {
@@ -10,7 +10,7 @@ export default function Portfolio({ snapshot, mandate, lastRun, onRefresh, onRun
     return { sym, a, pos, alloc };
   });
   return (
-    <section>
+    <section data-testid="portfolio-panel">
       <h2 className="section">Portfolio &amp; NAV</h2>
       <p className="sub">
         Live Mainnet reads: Chainlink total-return NAV and on-chain B20 multipliers.
@@ -19,11 +19,23 @@ export default function Portfolio({ snapshot, mandate, lastRun, onRefresh, onRun
           ? ` DEX vs NAV: ${snapshot.dexMarket.source} public API (no key), deepest USD-stable pool ≥ $${Number(snapshot.dexMarket.minLiquidityUsd).toLocaleString("en-US")} liquidity, read ${new Date(snapshot.dexMarket.at * 1000).toISOString().slice(11, 16)} UTC. A flag, never a block.`
           : " DEX premium not read for this snapshot."}
       </p>
+      <p className="hint" style={{ marginTop: -12, marginBottom: 18 }}>
+        Optional. The guided demo continues on Proposal (steps 2–3) after the mandate is saved.
+      </p>
+      {!snapshot && (
+        <div className="empty" data-testid="portfolio-empty">
+          <strong>No snapshot yet.</strong>
+          <p>
+            Prices have not been read in this session. Refresh prices for a read-only Mainnet
+            snapshot, or run the steward from Step 2 — the run takes a snapshot as part of the proposal.
+          </p>
+        </div>
+      )}
       <div className="row">
-        <button className="btn ghost" disabled={busy} onClick={onRefresh}>
+        <button className="btn ghost" disabled={Boolean(busy)} onClick={onRefresh}>
           {busy === "snap" ? "Reading Mainnet…" : "Refresh prices"}
         </button>
-        <button className="btn" disabled={busy} onClick={onRun}>
+        <button className="btn" disabled={Boolean(busy) || !canRun} onClick={onRun} title={!canRun ? "Save the mandate first (Step 1)" : undefined}>
           {busy === "run" ? "Running steward…" : "Run steward"}
         </button>
         {busy && (

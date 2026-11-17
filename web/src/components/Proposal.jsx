@@ -2,11 +2,13 @@ import { pctBps, shortHash, usd } from "../format.js";
 
 export default function Proposal({
   lastRun,
+  hasMandate,
   onApprove,
   onReject,
   onRun,
   onSchedule,
   onStop,
+  onViewLog,
   schedule,
   intervalSec,
   setIntervalSec,
@@ -25,12 +27,36 @@ export default function Proposal({
 
   if (!p) {
     return (
-      <section>
-        <h2 className="section">Proposal</h2>
-        <p className="sub">Run the steward to price the book and produce a proposal with reasons.</p>
-        <button className="btn" disabled={busy} onClick={onRun}>
-          Run steward
-        </button>
+      <section data-testid="proposal-panel">
+        <h2 className="section">Step 2 — Proposal</h2>
+        <p className="sub">Run the steward to price the paper book and produce a proposal with reasons.</p>
+        {!hasMandate ? (
+          <div className="empty" data-testid="proposal-need-mandate">
+            <strong>Save a mandate first.</strong>
+            <p>
+              Step 1 writes the mandate to the local log. Until that is saved, the steward
+              has nothing new to propose against.
+            </p>
+          </div>
+        ) : (
+          <div className="empty" data-testid="proposal-ready-to-run">
+            <strong>Mandate saved. Ready to run.</strong>
+            <p>
+              With the demo defaults this should propose a rebalance: sell some AAPLc,
+              buy the other six names, and keep a 10% cash sleeve. The run also reads
+              live Mainnet NAVs (read-only, no gas) and writes a Proposed event on the
+              local chain (id 84532).
+            </p>
+            <button className="btn" data-testid="run-steward" disabled={Boolean(busy)} onClick={onRun}>
+              {busy === "run" ? "Running steward…" : "Run steward"}
+            </button>
+            {busy === "run" && (
+              <span className="busy">
+                <span className="spin" /> Pricing the book, proposing, and logging.
+              </span>
+            )}
+          </div>
+        )}
         <Scheduler
           onSchedule={onSchedule}
           onStop={onStop}
@@ -46,13 +72,17 @@ export default function Proposal({
   }
 
   return (
-    <section>
-      <h2 className="section">Proposal</h2>
+    <section data-testid="proposal-panel">
+      <h2 className="section">
+        {action === "rebalance" && (status === "Proposed" || status === "Approved" || status === "Rejected")
+          ? "Step 3 — Paper fill"
+          : "Step 2 — Proposal"}
+      </h2>
       <p className="sub">
         Review the reasons, then approve or reject. Approval records on the local log and, for a
         rebalance, updates the paper book. No funds move.
       </p>
-      <div className={`banner ${action}`}>
+      <div className={`banner ${action}`} data-testid="proposal-banner">
         <div>
           <strong>{action}</strong>
           <div className="hint">
@@ -67,20 +97,46 @@ export default function Proposal({
         {p.maxDriftBps != null && <div className="num">max drift {p.maxDriftBps} bps</div>}
       </div>
 
+      {status === "Approved" && (
+        <div className="ok-banner" data-testid="fill-complete">
+          Paper fill recorded. The paper book now matches the target weights. No funds moved.
+          Next: open the proposal log and confirm MandateSet, Proposed, and Approved.
+          <div className="row" style={{ margin: "12px 0 0" }}>
+            <button className="btn" type="button" data-testid="view-log-from-fill" onClick={onViewLog}>
+              View the proposal log
+            </button>
+          </div>
+        </div>
+      )}
+      {status === "Rejected" && (
+        <div className="empty-warn" data-testid="fill-rejected">
+          Proposal rejected. The decision is on the local log, but the paper book was not updated.
+          To see a paper fill, run again and approve.
+        </div>
+      )}
+
       <div className="grid-2">
         <div className="card explain">
           <h3>Why</h3>
-          {paragraphs.map((para, i) => (
-            <p key={i}>{para}</p>
-          ))}
+          {paragraphs.length ? (
+            paragraphs.map((para, i) => (
+              <p key={i}>{para}</p>
+            ))
+          ) : (
+            <p className="empty">No explanation text on this run.</p>
+          )}
         </div>
         <div className="card">
           <h3>Reasons</h3>
-          <ul className="reasons">
-            {(p.reasons || explanation?.reasons || []).map((r, i) => (
-              <li key={i}>{r}</li>
-            ))}
-          </ul>
+          {(p.reasons || explanation?.reasons || []).length ? (
+            <ul className="reasons">
+              {(p.reasons || explanation?.reasons || []).map((r, i) => (
+                <li key={i}>{r}</li>
+              ))}
+            </ul>
+          ) : (
+            <p className="empty">No structured reasons on this run.</p>
+          )}
         </div>
       </div>
 
@@ -110,7 +166,14 @@ export default function Proposal({
             </tbody>
           </table>
         </div>
-      ) : null}
+      ) : (
+        action !== "rebalance" && (
+          <div className="empty">
+            No paper trades on this run
+            {action === "hold" ? " — weights are inside the threshold." : "."}
+          </div>
+        )
+      )}
 
       {p.target && (
         <div className="card" style={{ overflowX: "auto" }}>
@@ -163,28 +226,30 @@ export default function Proposal({
 
       <div className="row">
         {action === "rebalance" && !decided && proposalId && status === "Proposed" && (
-          <button className="btn good" disabled={busy} onClick={() => onApprove(proposalId)}>
+          <button className="btn good" data-testid="approve-fill" disabled={Boolean(busy)} onClick={() => onApprove(proposalId)}>
             {busy === "decide" ? "Approving…" : "Approve (paper fill)"}
           </button>
         )}
         {action !== "rebalance" && !decided && status === "Proposed" && proposalId && (
-          <button className="btn good" disabled={busy} onClick={() => onApprove(proposalId)}>
+          <button className="btn good" disabled={Boolean(busy)} onClick={() => onApprove(proposalId)}>
             {busy === "decide" ? "Approving…" : "Approve (record only)"}
           </button>
         )}
         {!decided && status === "Proposed" && proposalId && (
-          <button className="btn warn" disabled={busy} onClick={() => onReject(proposalId)}>
+          <button className="btn warn" data-testid="reject-proposal" disabled={Boolean(busy)} onClick={() => onReject(proposalId)}>
             Reject
           </button>
         )}
         {decided && (
-          <span className="chip ok">{status === "Approved" ? "Approved" : "Rejected"}</span>
+          <span className="chip ok" data-testid="proposal-decided">
+            {status === "Approved" ? "Approved — paper book updated" : "Rejected"}
+          </span>
         )}
         {action !== "rebalance" && !proposalId && (
-          <span className="hint">Hold and blocked recommendations are not written to the log.</span>
+          <span className="hint">Hold and blocked recommendations are not written to the log. There is no paper fill on this run.</span>
         )}
-        <button className="btn ghost" disabled={busy} onClick={onRun}>
-          Run again
+        <button className="btn ghost" data-testid="run-steward" disabled={Boolean(busy) || !hasMandate} onClick={onRun}>
+          {busy === "run" ? "Running steward…" : "Run again"}
         </button>
       </div>
 
@@ -208,8 +273,8 @@ function Scheduler({ onSchedule, onStop, schedule, intervalSec, setIntervalSec, 
     <div className="card" style={{ marginTop: 20 }}>
       <h3>Bounded schedule</h3>
       <p className="hint" style={{ marginTop: 0 }}>
-        Optional. Requires a max-run cap (1–6) and an interval of 60–3600 seconds. Stops on its own.
-        Never an unbounded loop. The first run waits one full interval.
+        Optional, and not part of the four-step demo. Requires a max-run cap (1–6) and an interval
+        of 60–3600 seconds. Stops on its own. Never an unbounded loop. The first run waits one full interval.
       </p>
       {schedule?.running ? (
         <div className="row" style={{ marginBottom: 0 }}>
@@ -217,7 +282,7 @@ function Scheduler({ onSchedule, onStop, schedule, intervalSec, setIntervalSec, 
             running {done}/{schedule.maxRuns} · every {schedule.intervalSec}s
             {schedule.nextAt ? ` · next ${new Date(schedule.nextAt).toISOString().slice(11, 19)} UTC` : ""}
           </span>
-          <button className="btn warn small" onClick={onStop} disabled={busy}>
+          <button className="btn warn small" onClick={onStop} disabled={Boolean(busy)}>
             Stop schedule
           </button>
         </div>
@@ -245,7 +310,7 @@ function Scheduler({ onSchedule, onStop, schedule, intervalSec, setIntervalSec, 
               style={{ width: 64, marginLeft: 6 }}
             />
           </label>
-          <button className="btn ghost" disabled={busy} onClick={onSchedule}>
+          <button className="btn ghost" disabled={Boolean(busy)} onClick={onSchedule}>
             Start bounded schedule
           </button>
         </div>

@@ -42,6 +42,7 @@ export default function Gate({ eligibility, checked, onToggle, onEnter, blocked 
                 <label key={item.id}>
                   <input
                     type="checkbox"
+                    data-testid={`attest-${item.id}`}
                     checked={Boolean(checked[item.id])}
                     onChange={() => onToggle(item.id)}
                   />
@@ -49,7 +50,12 @@ export default function Gate({ eligibility, checked, onToggle, onEnter, blocked 
                 </label>
               ))}
             </div>
-            <button className="btn" disabled={!allOn} onClick={onEnter}>
+            <p className="hint gate-demo-note">
+              After you enter, a 4-step demo walks you from mandate to proposal,
+              paper fill, and the local proposal log (chain id 84532, in-process
+              Hardhat only — nothing is deployed to a public network).
+            </p>
+            <button className="btn" disabled={!allOn} onClick={onEnter} data-testid="enter-steward">
               Enter Steward
             </button>
           </>

@@ -1,13 +1,27 @@
-# Steward — status (15 November 2026)
+# Steward — status (17 November 2026)
 
 **Project:** Steward, the primary Base Stocks Maxxing concept (Agentic Stock Finance).  
-**Updated:** Sunday 15 November 2026, 14:39 GMT (Europe/London, UTC+0). Earlier full update: Saturday 14 November 2026, 01:57 GMT.  
+**Updated:** Tuesday 17 November 2026, Europe/London (GMT / UTC+0). Earlier updates: Sunday 15 November 2026, 14:39 GMT; Saturday 14 November 2026, 01:57 GMT.  
 **Tree:** `/workspace/money/hackathons/base-stocks/steward/` — local git only; no remote, no push, no GitHub.  
 **Plan:** `../PLAN.md`. Spike: `SPIKE.md`. 12 Nov core write-up: `CORE.md` (this file supersedes it for current state).
 
 This is a research-to-portfolio agent for Coinbase tokenized stocks on Base. Paper and a local Hardhat chain tagged 84532 only. Not a live product, not investment advice, not a brokerage, and not available in the United States.
 
 No spend, no mainnet transaction, no wallet install, no signing with a real wallet, no registration-form submit, no public repo, and no posts were made in this session.
+
+---
+
+## 0. Update — Tuesday 17 November 2026 (UK time, GMT / UTC+0)
+
+**Guided demo path polished.** The judge flow is now explicit: mandate → proposal → paper fill → proposal log.
+
+- **One command:** `npm run demo` prints the four steps and starts the same loopback server as `npm run dev` (in-process Hardhat, chain id 84532 only). `http://127.0.0.1:5173`.
+- **UI:** a 4-step guide stays at the top of the app after the eligibility gate. Demo defaults are labelled (7-name basket, $90k AAPLc, $10k cash). The steward will not run until a mandate is saved. After a rebalance is approved, a paper-fill confirmation points at the log. Empty and error states cover “no mandate yet”, “no snapshot yet”, an empty log, a hold or blocked run, a rejected proposal, and a dismissible error banner. A later hold does not rewind completed steps.
+- **Verified on the local path** (screenshots in `docs/screenshots/2026-11-17/`): save mandate → run steward → approve (paper fill) → log shows MandateSet, Proposed, and Approved on chain id 84532. No public network was used.
+- **Tests:** `npm test` gives **64** Node tests (49 earlier + 15 new guided-demo state-machine tests in `test/demoFlow.test.js`) and **6** Hardhat tests, all green. The local network stays on chain 84532 only.
+- **Progress X post:** drafted only, at `docs/X_POST_DRAFT_2026-11-17.md`. Not posted. Needs Ali's OK and Ali's X handle.
+
+No spend, keys, wallet, deploy, signup, post, form submit, or remote push. `.secrets/` was not read.
 
 ---
 
@@ -89,9 +103,9 @@ Public GitHub is **not** an official requirement. A public demo URL, Builder Cod
 
 ## 3. Current state
 
-The local vertical slice works end to end.
+The local vertical slice works end to end. As of 17 Nov the judge path is a guided 4-step demo (`npm run demo` → http://127.0.0.1:5173).
 
-**User flow that already runs on loopback (`npm run dev` → http://127.0.0.1:5173):**
+**User flow that already runs on loopback:**
 
 1. US geo-gate (timezone or country) is a hard block; `America/St_Johns` is treated as Canada. Everyone else must attest (18+, not a US person, not advice, no shareholder rights, paper / testnet only).
 2. Set a mandate (universe, caps, cash sleeve, threshold). `neverAutoSpend` is forced on.
@@ -105,7 +119,7 @@ The local vertical slice works end to end.
 - DEX / secondary-market premium versus official NAV is computed when a `marketE8` is present, and flagged at ±100 bps. It is **not a block**. Since 15 Nov a live, read-only DexScreener reader supplies `marketE8` (see §0).
 - `snapshotFromListed` builds an engine snapshot from official API rows only, so the core loop can run without a public RPC.
 - A local end-to-end test hits the live Tokenized Stocks API (no key) when reachable, otherwise the committed fixture, then propose → explain → paper fill → second run holds. Live API succeeded in this session (358 list records; demo basket NAVs present).
-- Tests: **49** Node tests (as of 15 Nov; 35 on 14 Nov) and **6** Hardhat contract tests, all green (`npm test`).
+- Tests: **64** Node tests (as of 17 Nov; 49 on 15 Nov; 35 on 14 Nov) and **6** Hardhat contract tests, all green (`npm test`).
 
 **Default demo book:** $90,000 AAPLc + $10,000 cash, equal-weight 7-name universe (AAPLc, AMZNc, GOOGLc, METAc, MSFTc, NVDAc, TSLAc), 30% cap, 10% cash sleeve, 200 bps threshold.
 
@@ -114,7 +128,7 @@ The local vertical slice works end to end.
 - No Base Sepolia deploy, faucet request, or funded key use. An unused testnet-only deployer address exists (see below). The key itself is outside the repo and was not read or printed.
 - No Builder Code issued. `src/builderCode.js` leaves calldata unchanged until a real code exists (`BUILDER_CODE = null`). Do not invent a placeholder suffix.
 - No wallet connect (wagmi / OnchainKit) and no wallet install.
-- No public GitHub remote, no demo hosting, no X drafts posted, no registration or submission form sent.
+- No public GitHub remote, no demo hosting, no X posts published (a 17 Nov progress draft exists, unposted), no registration or submission form sent.
 - DEX premium is mid-price only (DexScreener, no depth model). No policy-registry / announcement-log historical query. IndexKit (backup concept) is not built. Steward remains the go path.
 
 **Testnet deployer (address only, from `CORE.md`):** `0xbad2aA8FFF3d577b08Ef9f128d45C1A807497e4F` — Base Sepolia (84532) only. Not funded, not used. **Never** send mainnet assets to it. The key file lives outside git (`.secrets/` is gitignored). Do not read or print it.
@@ -127,9 +141,11 @@ The local vertical slice works end to end.
 npm test
 ```
 
-Result on 14 Nov 2026, about 01:58 GMT (Europe/London): **35/35** Node tests pass, **6/6** contract tests pass, 0 failures.
+Result on 17 Nov 2026 (Europe/London): **64/64** Node tests pass, **6/6** contract tests pass, 0 failures. Added 15 guided-demo flow tests (`test/demoFlow.test.js`) on top of the 15 Nov suite (49 Node + 6 contract).
 
-Node coverage: eligibility, hash, paper, explain, builder-code stub, engine (rebalance / hold / cap / stale / pending CA / off-hours / pause / premium), premium helper, `snapshotFromListed`, and the API-to-paper e2e loop. Contract coverage: mandate, propose, owner-only approve-once, reject, mandate mismatch, no-mandate / empty hash, local chain id 84532.
+Earlier: 14 Nov 2026, about 01:58 GMT — **35/35** Node + **6/6** contract.
+
+Node coverage: eligibility, hash, paper, explain, builder-code stub, engine (rebalance / hold / cap / stale / pending CA / off-hours / pause / premium), premium helper, `snapshotFromListed`, the API-to-paper e2e loop, DEX reader, and the guided-demo state machine. Contract coverage: mandate, propose, owner-only approve-once, reject, mandate mismatch, no-mandate / empty hash, local chain id 84532.
 
 ---
 
@@ -140,7 +156,7 @@ From `PLAN.md`, adjusted for what is already built. Target effort stays lean.
 | # | When (UK) | What is left | Exit criteria / blocker |
 | --- | --- | --- | --- |
 | 2 (wrap) | through Mon 16 Nov | Local core is done. Sepolia faucet + hello/log deploy is **not** done and stays blocked on Ali. Optional: draft registration answers (not submit). | Ali answers in §6 before any faucet, deploy, or form. |
-| 3 | Tue 17 – Mon 23 Nov | Polish the demo path; first dated progress **draft** for Ali (~18–20 Nov). Sepolia approval flow only after Ali’s wallet / faucet OK. Optional: a free-tier DEX or pool read for live premium. | A stranger can set a mandate, see a real-data brief, and (if Sepolia is approved) approve on Sepolia; otherwise the local 84532 log remains the demo. |
+| 3 | Tue 17 – Mon 23 Nov | **Local demo polish done 17 Nov** (`npm run demo`, 4-step UI, screenshots, tests green). Dated progress X post **drafted** (`docs/X_POST_DRAFT_2026-11-17.md`) — not posted, needs Ali. Sepolia approval flow only after Ali’s wallet / faucet OK. Live DEX premium reader already landed 15 Nov. | A stranger can set a mandate, see a real-data brief, and approve on the local 84532 log. Sepolia remains blocked on Ali. |
 | 4 | Tue 24 – Sat 28 Nov | Builder Codes on every tx **once a real code is issued**; tests; visual finish; README ready if Ali agrees to a public repo. Mid-build X **draft** (~25–26 Nov). | Test suite green; Builder Code visible on a Sepolia explorer only if Ali has approved that deploy. |
 | 5 | Sun 29 – Mon 30 Nov | Demo video (2–4 min): gate → mandate → research → approve → history. Final X post **draft** tagging `@buildonbase`. Submission packet prepared and held. | Video and drafts ready. No agent posts. |
 | 6 | Tue 1 – Thu 3 Dec | QA; re-check Quest Page for the **final submission form** and any rules/prize changes. **Target submit: Thu 3 Dec 18:00 UK.** | Form and X post only with Ali’s explicit OK; Ali posts and Ali (or Ali-directed) submits. |
@@ -148,7 +164,7 @@ From `PLAN.md`, adjusted for what is already built. Target effort stays lean.
 
 IndexKit stays the unused backup. Switch only if Steward clearly cannot make the 3 Dec buffer.
 
-Product polish that can wait: live DEX premium reader, policy-registry pause confirmation on-chain, announcement history, public-RPC 429 hardening, wallet-connect UI (only after Ali is ready to use a wallet on Sepolia — no install from an agent).
+Product polish that can wait: policy-registry pause confirmation on-chain, announcement history, public-RPC 429 hardening, wallet-connect UI (only after Ali is ready to use a wallet on Sepolia — no install from an agent). Live DEX premium reader landed 15 Nov; guided demo polish landed 17 Nov.
 
 ---
 
@@ -213,9 +229,10 @@ The “Apply Now” form is still titled **“Stocks Maxxing \| Register + Partn
 
 ```bash
 npm install          # already done in this tree
-npm test             # 35 engine / eligibility / hash / paper / explain / premium / snapshot / e2e tests + 6 contract tests
-npm run dev          # http://127.0.0.1:5173 — stop with Ctrl-C
+npm test             # 64 Node tests (engine, eligibility, explain, paper, premium, e2e, DEX, guided-demo flow) + 6 contract tests
+npm run demo         # recommended: prints the 4-step path and serves http://127.0.0.1:5173
+npm run dev          # same server without the printed walkthrough — stop with Ctrl-C
 npm run spike        # optional live read-only Mainnet + API probe (no keys, no gas)
 ```
 
-`npm run dev` starts in-process Hardhat (chain id 84532), deploys `StewardProposalLog` in memory, and serves the API and Vite app together. It refuses to start on any other network name or chain id. There is no deploy script and no Sepolia URL in `hardhat.config.cjs`. Do not point Hardhat at a public RPC. Do not add a git remote. Do not send mainnet assets to the testnet deployer.
+`npm run demo` / `npm run dev` starts in-process Hardhat (chain id 84532), deploys `StewardProposalLog` in memory, and serves the API and Vite app together. It refuses to start on any other network name or chain id. There is no deploy script and no Sepolia URL in `hardhat.config.cjs`. Do not point Hardhat at a public RPC. Do not add a git remote. Do not send mainnet assets to the testnet deployer.

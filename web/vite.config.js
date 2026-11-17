@@ -9,5 +9,8 @@ export default defineConfig({
   root: dir,
   plugins: [react()],
   appType: "spa",
-  server: { middlewareMode: true },
+  server: {
+    middlewareMode: true,
+    fs: { allow: [path.join(dir, "..")] },
+  },
 });
