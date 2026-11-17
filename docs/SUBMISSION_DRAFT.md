@@ -1,18 +1,18 @@
-# Stocks Maxxing form draft — ready to submit (not sent from this tree)
+# Stocks Maxxing form draft — submitted 17 November 2026, 14:20 UK
 
-Status: Ali approved making the Steward repo public on 17 November 2026. The public repo is https://github.com/halfabillion/steward. **This file is the answer sheet for the application form; the form is not submitted from this repository.** A browser agent (or Ali) can paste the answers below into:
+Status: **Submitted once.** The Stocks Maxxing application form was sent at about **14:20 UK on Tuesday 17 November 2026** (Europe/London, GMT / UTC+0). Confirmation on screen: **“Application received.”** Full confirmation copy: “Application received. Now pick a track and start building. The best way to stand out is to ship and build in public.” The confirmation page also showed **Edit your response** and Submit another response. Screenshot: `/cursor/stores/user/grok-bot/agents/da03498d-1050-4392-ac96-87501e34b7e7/assets/7bdaca5a5faba54f0c60b0026004f94fc1f91913debda4b510ccd4dfe94116a6.png`.
+
+Public repo: https://github.com/halfabillion/steward. The answers below are the submitted set (product/demo URL = the repo). Form URL:
 
 **https://docs.google.com/forms/d/1zotYvkeAtDjR2MKk3qNxyNIAfJ_IPQtzTtjNhOAF8js/viewform**
 
 Live title (re-fetched 17 November 2026, 14:11 UK, Europe/London, GMT / UTC+0): **Stocks Maxxing | Application Form**. Seventeen items, labels and options taken from the live form JSON (`FB_PUBLIC_LOAD_DATA_`).
 
-This Google Form is the official apply / partner-support form linked from the Quest Page. It still has **no field for an X post URL, no video upload, no GitHub URL (the product/demo URL is the place for the repo), and no wallet-signature step.** Official Rules §5 still require a later public X video post tagging `@buildonbase` and a Submission Form that includes that link. Re-check [https://www.base.org/stocksmaxxing](https://www.base.org/stocksmaxxing) for any separate final form. Binding close: **Friday 5 December 2026, 23:59 UK**. Internal target: **Thursday 3 December 2026, 18:00 UK**.
-
-Treat a submit as **one-shot** unless an edit link appears on the confirmation screen. Confirmation text: “Application received. Now pick a track and start building. The best way to stand out is to ship and build in public.”
+This Google Form is the official apply / partner-support form linked from the Quest Page. It still has **no field for an X post URL, no video upload, no GitHub URL (the product/demo URL is the place for the repo), and no wallet-signature step.** Official Rules §5 still require a later public X video post tagging `@buildonbase` and a Submission Form that includes that link, both only with Ali’s go. Re-check [https://www.base.org/stocksmaxxing](https://www.base.org/stocksmaxxing) for any separate final form. Binding close: **Friday 5 December 2026, 23:59 UTC**. Internal target: **Thursday 3 December 2026, 18:00 UK**.
 
 ## After submit, KYC, video, signature
 
-- **X post / video:** not collected here; still required later by Official Rules §5 and the FAQ (Loom or similar, tag `@buildonbase`). Do not invent a post link.
+- **X post / video:** not collected on this form and not yet posted. Still required later by Official Rules §5 and the FAQ (public X video demo tagging `@buildonbase`, then the final submission form with that post link). Both need Ali’s go. Do not invent a post link.
 - **KYC / identity:** not on this form. Winners are subject to identity verification and tax forms after a notice.
 - **Wallet signature:** none on this form.
 - **Payout** (if asked later): Ali’s existing Phantom Base wallet `0xd9784f8122af988E51b3183F725b0b53BCb8278A`, not the testnet deployer.
