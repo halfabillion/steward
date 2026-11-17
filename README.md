@@ -34,9 +34,17 @@ The local network is **always chain id 84532** (Base Sepolia’s id, used here f
 
 17 Nov 2026 screenshots of this path: `docs/screenshots/2026-11-17/`. Earlier 12 Nov shots remain in `docs/screenshots/`.
 
-## Deploy (Base Sepolia, not done yet)
+## Deploy (Base Sepolia)
 
-The proposal-log contract is **not** on a public chain. The testnet-only deployer address is `0xbad2aA8FFF3d577b08Ef9f128d45C1A807497e4F` (unfunded as of 17 Nov 2026; never send mainnet assets to it). Status, faucet notes, and the gated deploy command: `docs/DEPLOYMENTS.md`. A future `STEWARD_DEPLOY=yes node scripts/deploy-sepolia.cjs` will record tx hashes and addresses there.
+`StewardProposalLog` is on **Base Sepolia (chain id 84532)** only:
+
+- Contract: [`0xA2cFFa3bdb2CD12dda441f1DA7139E050b733188`](https://base-sepolia.blockscout.com/address/0xA2cFFa3bdb2CD12dda441f1DA7139E050b733188?tab=contract)
+- Deploy tx: [`0xf42e597cd77b05a3d7ea04bc2d998595ef413636afdc1d4e3688af7c7d21593a`](https://sepolia.basescan.org/tx/0xf42e597cd77b05a3d7ea04bc2d998595ef413636afdc1d4e3688af7c7d21593a) (17 Nov 2026, 11:47:41 UK)
+- Deployer: `0xbad2aA8FFF3d577b08Ef9f128d45C1A807497e4F` (testnet only; never send mainnet assets to it)
+- Verified on [Blockscout](https://base-sepolia.blockscout.com/address/0xA2cFFa3bdb2CD12dda441f1DA7139E050b733188?tab=contract) (Solidity 0.8.24, optimizer 200, cancun). Not verified on BaseScan (no API key was used).
+- Demo write (paper evidence only; the contract never moves funds): MandateSet [`0x8606005ba5138afbfc03fc618e8034af8ae9f8411a9189d578f5fa940747993a`](https://sepolia.basescan.org/tx/0x8606005ba5138afbfc03fc618e8034af8ae9f8411a9189d578f5fa940747993a), Proposed [`0x6221c7dd350870efe19b0a9047402aa327519c3a671de2faaceee9fa197aa1ba`](https://sepolia.basescan.org/tx/0x6221c7dd350870efe19b0a9047402aa327519c3a671de2faaceee9fa197aa1ba), Approved [`0x5ab6a7bf9f851cb6bc01de1e19f0295abc062a07b3938e34699cc64cf3f1bffa`](https://sepolia.basescan.org/tx/0x5ab6a7bf9f851cb6bc01de1e19f0295abc062a07b3938e34699cc64cf3f1bffa). Full hashes and the exact hashed JSON are in `docs/DEPLOYMENTS.md`.
+
+The local `npm run demo` app still uses in-process Hardhat tagged 84532; it is not this public-testnet deploy. The Hardhat config still has no public network URLs. Gated scripts: `STEWARD_DEPLOY=yes node scripts/deploy-sepolia.cjs` and `STEWARD_DEMO_WRITE=yes node scripts/demo-sepolia-write.cjs`.
 
 ## Contest notes
 

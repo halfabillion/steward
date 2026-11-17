@@ -1,4 +1,4 @@
-# Steward — status (17 November 2026, afternoon update)
+# Steward — status (17 November 2026, 11:50 UK)
 
 **Project:** Steward, the primary Base Stocks Maxxing concept (Agentic Stock Finance).  
 **Updated:** Tuesday 17 November 2026, Europe/London (GMT / UTC+0). Earlier updates: Sunday 15 November 2026, 14:39 GMT; Saturday 14 November 2026, 01:57 GMT.  
@@ -8,6 +8,12 @@
 This is a research-to-portfolio agent for Coinbase tokenized stocks on Base. Paper and a local Hardhat chain tagged 84532 only. Not a live product, not investment advice, not a brokerage, and not available in the United States.
 
 No spend, no mainnet transaction, no wallet install, no signing with a real wallet, no registration-form submit, no public repo, and no posts were made in this session.
+
+---
+
+## 0. Update — Tuesday 17 November 2026, 11:50 UK (Base Sepolia deploy)
+
+**StewardProposalLog is on Base Sepolia (84532).** Contract [`0xA2cFFa3bdb2CD12dda441f1DA7139E050b733188`](https://base-sepolia.blockscout.com/address/0xA2cFFa3bdb2CD12dda441f1DA7139E050b733188?tab=contract), deploy tx [`0xf42e597c…1593a`](https://sepolia.basescan.org/tx/0xf42e597cd77b05a3d7ea04bc2d998595ef413636afdc1d4e3688af7c7d21593a) at 11:47:41 UK, after the CDP faucet funded the existing deployer `0xbad2aA8FFF3d577b08Ef9f128d45C1A807497e4F` with 0.0001 ETH (tx `0x78d2686…dee87`, 11:46:29 UK). Verified on Blockscout (0.8.24, optimizer 200, cancun), not on BaseScan (no API key). A paper-only demo write (setMandate / propose / approve, no funds moved) is recorded in `docs/DEPLOYMENTS.md`. The key was not printed, logged, or committed. No remote, no push, no form submit, no spend of real funds (test ETH only).
 
 ---
 

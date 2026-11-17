@@ -1,73 +1,81 @@
 # Steward deployments
 
-Last checked: Tuesday 17 November 2026, 11:41 UK (Europe/London, GMT / UTC+0).
+Last updated: Tuesday 17 November 2026, 11:50 UK (Europe/London, GMT / UTC+0).
 
-Nothing in this file has been deployed to a public network in this session. There is no public GitHub remote, and no verification was attempted.
+The proposal-log contract is now on **Base Sepolia (chain id 84532)** only. There is still no public GitHub remote, and nothing was pushed.
 
-## Intended network
+## Network
 
 - Network: Base Sepolia
 - Chain id: **84532** only
-- Official RPC (read/used for balance checks): `https://sepolia.base.org`
-- Explorers (for a future verify step): [Sepolia BaseScan](https://sepolia.basescan.org), [Base Sepolia Blockscout](https://base-sepolia.blockscout.com)
+- Official RPC: `https://sepolia.base.org`
+- Explorers: [Sepolia BaseScan](https://sepolia.basescan.org), [Base Sepolia Blockscout](https://base-sepolia.blockscout.com)
 
 ## Deployer (public address only)
 
-The testnet-only deployer key already existed (created 12 Nov 2026 with project-local `ethers.Wallet.createRandom()`). A new key was **not** created, so the original address is not stranded.
+The testnet-only deployer key lives outside the git repo and is never printed, logged, or committed.
 
 - **Address:** `0xbad2aA8FFF3d577b08Ef9f128d45C1A807497e4F`
 - **Key path:** `/workspace/money/hackathons/base-stocks/.secrets/sepolia-deployer.key` (mode 600, directory mode 700)
-- The path is outside the `steward/` git repo. Parent and repo `.gitignore` exclude `.secrets/`, `secrets/`, and `*.key`.
-- The key has not been printed, logged, or committed. **Never** send mainnet assets to this address.
+- Parent and repo `.gitignore` exclude `.secrets/`, `secrets/`, and `*.key`.
+- **Never** send mainnet assets to this address.
 
-## Funding status (17 Nov 2026, 11:36–11:41 UK)
+## Funding
 
-- Base Sepolia balance: **0 ETH** (nonce 0), confirmed on chain id 84532 via `https://sepolia.base.org`.
-- No faucet claim succeeded from this shell (see below). **No deploy was run.**
+Coinbase CDP faucet sent **0.0001 ETH** on Base Sepolia to the deployer.
 
-### Would a free drip be enough to deploy?
+- Faucet tx: [`0x78d2686041f16deed99dfe9ae524de5e6165a3533264d3ed981cb5fb70bdee87`](https://sepolia.basescan.org/tx/0x78d2686041f16deed99dfe9ae524de5e6165a3533264d3ed981cb5fb70bdee87) (via the CDP faucet contract; status 0x1)
+- Block: 59970602
+- Time: 17 Nov 2026, 11:46:29 UK (Europe/London, GMT / UTC+0)
+- Balance after the drip, before deploy: **0.0001 ETH**, nonce 0, confirmed on chain id 84532.
 
-Yes, at the gas price observed at 11:41 UK:
+## Contract
 
-- `eth_gasPrice` ≈ 0.006 gwei; `maxPriorityFee` ≈ 0.001 gwei
-- `StewardProposalLog` bytecode ≈ 2,314 bytes; rough deploy gas ≈ 480k
-- Estimated deploy cost ≈ **0.000003 ETH**
-- A single Coinbase CDP drip (0.0001 ETH) would cover the deploy with margin, if one can be claimed.
+- **StewardProposalLog:** [`0xA2cFFa3bdb2CD12dda441f1DA7139E050b733188`](https://base-sepolia.blockscout.com/address/0xA2cFFa3bdb2CD12dda441f1DA7139E050b733188?tab=contract)
+- **Deploy tx:** [`0xf42e597cd77b05a3d7ea04bc2d998595ef413636afdc1d4e3688af7c7d21593a`](https://sepolia.basescan.org/tx/0xf42e597cd77b05a3d7ea04bc2d998595ef413636afdc1d4e3688af7c7d21593a)
+- Block: 59970963
+- Time: 17 Nov 2026, 11:47:41 UK (Europe/London, GMT / UTC+0)
+- Status: 0x1 (success). Gas used: 547,265. Deployer nonce after deploy: 1.
+- Script: `STEWARD_DEPLOY=yes node scripts/deploy-sepolia.cjs` (refuses any chain id other than 84532; never prints the key). Hardhat config still has no public network URLs.
 
-These figures will move with gas; re-check before any real send.
+## Verification
 
-## Faucet routes checked (free only, no spend, no mainnet funding of this address)
+- **Blockscout: verified.** Name `StewardProposalLog`, compiler `v0.8.24+commit.e11b9ed9`, optimizer on (200 runs), evm cancun, MIT. Submitted keyless via Blockscout’s flattened-code API (`POST /api/v2/smart-contracts/…/verification/via/flattened-code`). Confirmed `is_verified: true` on the address and via `module=contract&action=getsourcecode`.
+  - Contract: https://base-sepolia.blockscout.com/address/0xA2cFFa3bdb2CD12dda441f1DA7139E050b733188?tab=contract
+- **Sourcify official `/server/verify`:** 404 (endpoint moved / not used). Not relied on.
+- **BaseScan:** not verified here. The public `api-sepolia.basescan.org` getsourcecode call returned `NOTOK` without an API key, and no BaseScan API key was created or used.
 
-| Route | Amount / limit | Can we use it from the shell today? | What it needs |
+## Demo write (on-chain evidence, no funds moved)
+
+A single paper-only path was written with the same deployer (the contract owner): **setMandate → propose → approve**. The contract does not transfer tokens or ETH. Script: `STEWARD_DEMO_WRITE=yes node scripts/demo-sepolia-write.cjs` (chain 84532 only).
+
+Hashes are `keccak256` of these exact UTF-8 strings (no extra whitespace):
+
+- Mandate JSON: `{"name":"Steward Base Sepolia demo","universe":["AAPLc","AMZNc","GOOGLc","METAc","MSFTc","NVDAc","TSLAc"],"maxWeightBps":3000,"cashSleeveBps":1000,"rebalanceThresholdBps":200,"neverAutoSpend":true,"note":"Demo write 2026-11-17. Paper evidence only. No funds move."}`
+- Research JSON: `{"source":"demo","date":"2026-11-17","note":"Placeholder research hash for on-chain log evidence. Not a live snapshot."}`
+- Proposal JSON: `{"action":"rebalance","neverAutoSpend":true,"note":"Placeholder proposal body for on-chain log evidence. Not an executable trade."}`
+
+| Step | Tx | Block | Time (UK) |
 | --- | --- | --- | --- |
-| **Coinbase Developer Platform (CDP)** — best fit once signed in | 0.0001 ETH per claim, up to 0.1 ETH / 24h (also USDC / EURC / cbBTC). UI or `POST https://api.cdp.coinbase.com/platform/v2/evm/faucet` | **No.** Needs a CDP Secret API key (JWT) or a signed-in Portal session. None is in this environment. | Free CDP account. Portal: [https://portal.cdp.coinbase.com/products/faucet](https://portal.cdp.coinbase.com/products/faucet) — pick Base Sepolia, token ETH, paste `0xbad2aA8FFF3d577b08Ef9f128d45C1A807497e4F`, Claim. Or create a free API key + Wallet Secret and call the [Faucets API](https://docs.cdp.coinbase.com/api-reference/v2/rest-api/faucets/request-funds-on-evm-test-networks) / [SDK quickstart](https://docs.cdp.coinbase.com/faucets/introduction/quickstart). **No mainnet balance required.** Coinbase signup may still ask for email and sometimes phone / 2FA. |
-| **Superchain faucet** | 0.01 ETH / 24h (more if onchain identity is verified) | **No.** Sign-in wall. | Browser: [https://console.optimism.io/faucet/](https://console.optimism.io/faucet/) — sign in (typically GitHub), choose **Base Sepolia** (84532), paste the deployer address. No mainnet balance required for the basic drip. |
-| **ethfaucet.com** (in official [Base faucet list](https://docs.base.org/chain/network-faucets)) | Page offers 0.1 test ETH / 24h | **No usable shell API found.** The page is a JS app with BringID verification. | Browser: [https://ethfaucet.com/networks/base/base-sepolia](https://ethfaucet.com/networks/base/base-sepolia) — paste the address and complete BringID. Requirements beyond that were not fully exercised (no login was started). |
-| **QuickNode** | Base drip shown after an address is entered; 12h cooldown | **No.** Official FAQ on the live page: a **small mainnet balance on the claiming wallet** is required. This deployer must not receive mainnet assets. | [https://faucet.quicknode.com/base/sepolia](https://faucet.quicknode.com/base/sepolia). Do not use this address here unless a *different*, already-funded mainnet wallet is allowed to claim and then *send test ETH only* to the deployer — that needs Ali. |
-| **Alchemy** | 0.1 ETH / 24h | **No.** | [https://www.alchemy.com/faucets/base-sepolia](https://www.alchemy.com/faucets/base-sepolia) — requires **0.001 ETH on Ethereum mainnet** plus mainnet activity on the same address. |
-| **thirdweb** | Testnet drip | **No.** | [https://thirdweb.com/faucets](https://thirdweb.com/faucets) / Base Sepolia page — **Connect Wallet** / login. |
-| **Chainlink** | 0.5 ETH + 25 test LINK (listed by third parties) | **No.** | Wallet connect in the browser. |
-| **Circle faucet** | Test USDC only | Not useful for gas. | [Circle faucet](https://faucet.circle.com) — Base Sepolia USDC. Does not pay ETH gas. |
+| setMandate | [`0x8606005ba5138afbfc03fc618e8034af8ae9f8411a9189d578f5fa940747993a`](https://sepolia.basescan.org/tx/0x8606005ba5138afbfc03fc618e8034af8ae9f8411a9189d578f5fa940747993a) | 59971700 | 17 Nov 2026, 11:50:08 |
+| propose | [`0x6221c7dd350870efe19b0a9047402aa327519c3a671de2faaceee9fa197aa1ba`](https://sepolia.basescan.org/tx/0x6221c7dd350870efe19b0a9047402aa327519c3a671de2faaceee9fa197aa1ba) | 59971722 | 17 Nov 2026, 11:50:13 |
+| approve | [`0x5ab6a7bf9f851cb6bc01de1e19f0295abc062a07b3938e34699cc64cf3f1bffa`](https://sepolia.basescan.org/tx/0x5ab6a7bf9f851cb6bc01de1e19f0295abc062a07b3938e34699cc64cf3f1bffa) | 59971743 | 17 Nov 2026, 11:50:17 |
 
-Official Base list (17 Nov 2026): [https://docs.base.org/chain/network-faucets](https://docs.base.org/chain/network-faucets) — CDP, thirdweb, Alchemy, QuickNode, Chainstack, ethfaucet.com.
+- **proposalId:** `0xb1af6ab0b30e44852ad8225e83a052fbac2b69b592b70c2acc852a70453e2b17`
+- **mandateHash:** `0x96c073dd49f76be490af838ee26cc5b85c899dad6d7a1e0166f4d7f47fd0e299`
+- **researchHash:** `0x10ac4acdf94505e35858bea7addc4d6fc5128d14e99680dc8ec581a7b8ce7d97`
+- **proposalHash:** `0x126caa353f3ae12e36ecea0cd596edd5c90b60f8f4866cca5050dc8c05cb6d13`
+- On-chain proposal status after approve: **2 (Approved)**. All three receipts are status 0x1.
 
-**Recommended next step for Ali (free, no spend):** sign in to the [CDP Portal faucet](https://portal.cdp.coinbase.com/products/faucet) (or the [Superchain faucet](https://console.optimism.io/faucet/)) and send **Base Sepolia ETH only** to `0xbad2aA8FFF3d577b08Ef9f128d45C1A807497e4F`. After a non-zero balance, the gated script below can deploy. Do not send mainnet ETH to this address.
+## Balances after this session
 
-## How to deploy (only after the address is funded; not run today)
-
-The Hardhat config still has **no public network URLs**, so `npx hardhat run` cannot be pointed at Sepolia by accident. A separate, gated script is in `scripts/deploy-sepolia.cjs`.
-
-```bash
-# From steward/. Refuses unless STEWARD_DEPLOY=yes, chain id is 84532, and the key file has a balance.
-STEWARD_DEPLOY=yes node scripts/deploy-sepolia.cjs
-```
-
-It reads the key from the path above (or `STEWARD_DEPLOYER_KEY_FILE`), never prints it, deploys `StewardProposalLog`, and appends the tx hash and contract address here. It will not run if the balance is zero or too low.
-
-Verification (once there is a contract address): Blockscout’s free UI verifier at the explorer above, or BaseScan if a free API key is available. Neither was used today.
+- Deployer nonce: 4
+- Remaining Base Sepolia ETH: **≈ 0.00009510** (17 Nov 2026, 11:50:33 UK)
+- Enough leftover for further test writes at the then gas price (~0.006 gwei). Still test ETH only.
 
 ## Record
 
 | Date (UK) | Network | Contract | Deploy tx | Verified | Notes |
 | --- | --- | --- | --- | --- | --- |
 | 17 Nov 2026, 11:41 | Base Sepolia (84532) | — | — | — | Address unfunded. No deploy. |
+| 17 Nov 2026, 11:47:41 | Base Sepolia (84532) | [`0xA2cFFa3bdb2CD12dda441f1DA7139E050b733188`](https://base-sepolia.blockscout.com/address/0xA2cFFa3bdb2CD12dda441f1DA7139E050b733188?tab=contract) | [`0xf42e597cd77b05a3d7ea04bc2d998595ef413636afdc1d4e3688af7c7d21593a`](https://sepolia.basescan.org/tx/0xf42e597cd77b05a3d7ea04bc2d998595ef413636afdc1d4e3688af7c7d21593a) | Blockscout yes (Solidity 0.8.24, optimizer 200, cancun). BaseScan not verified (no API key). | Funded by CDP faucet tx `0x78d2686…dee87` (0.0001 ETH, 11:46:29 UK). Demo write: MandateSet / Proposed / Approved in txs listed above. |
