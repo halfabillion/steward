@@ -1,7 +1,7 @@
-# Steward — status (17 November 2026, 20:55 UK)
+# Steward — status (19 November 2026, 11:45 UK)
 
 **Project:** Steward, the primary Base Stocks Maxxing concept (Agentic Stock Finance).  
-**Updated:** Tuesday 17 November 2026, Europe/London (GMT / UTC+0). Earlier updates: Sunday 15 November 2026, 14:39 GMT; Saturday 14 November 2026, 01:57 GMT.  
+**Updated:** Thursday 19 November 2026, 11:45 UK, Europe/London (GMT / UTC+0). Earlier updates: Tuesday 17 November 2026, 20:55 UK; Sunday 15 November 2026, 14:39 GMT; Saturday 14 November 2026, 01:57 GMT.  
 **Tree:** `/workspace/money/hackathons/base-stocks/steward/`. Public repository: https://github.com/halfabillion/steward (GitHub `main` is the local `publish` branch; local `main` keeps `.github/workflows/ci.yml` and is not pushed).  
 **Plan:** `../PLAN.md`. Spike: `SPIKE.md`. 12 Nov core write-up: `CORE.md` (this file supersedes it for current state).
 
@@ -10,6 +10,20 @@ This is a research-to-portfolio agent for Coinbase tokenized stocks on Base. Pap
 No spend of real funds, no mainnet transaction, no wallet install, and no signing with a real wallet in this work. The repo is public as of 17 November 2026, 14:15 UK. The application form is being submitted from the answers in `docs/SUBMISSION_DRAFT.md` (not sent from this tree). No X post was made in this session.
 
 ---
+
+---
+
+## 0. Update — Thursday 19 November 2026, 11:45 UK (npm run demo:live + ≤2 min video)
+
+`npm run demo:live` is in the tree. It checks the testnet deployer balance first, estimates gas for setMandate / propose / a reserved approve, and exits without sending if the balance is too low. It then runs the guided flow (demo mandate, live Mainnet NAVs, rebalance, paper fill) against StewardProposalLog on Base Sepolia and writes real txs. No faucet, no other wallet, no key printed.
+
+Live writes at 11:37 UK, all status 0x1, value 0 ETH:
+
+- setMandate [`0x6034405cbfd46d31f8d88d7b7a6f89e4b7fef3615c52ea60fa19aa6b824abd1d`](https://base-sepolia.blockscout.com/tx/0x6034405cbfd46d31f8d88d7b7a6f89e4b7fef3615c52ea60fa19aa6b824abd1d) block 60831895, 11:37:27 UK
+- propose [`0x4c4981192e41b1b4e1c828d39cc5e57b6d2a49308aff7d186a610ab57581ca5c`](https://base-sepolia.blockscout.com/tx/0x4c4981192e41b1b4e1c828d39cc5e57b6d2a49308aff7d186a610ab57581ca5c) block 60831901, 11:37:29 UK
+- approve [`0x0d6215537da01c3507400ae36876c5ebe950fd6dd296299dfb7c737966263a8c`](https://base-sepolia.blockscout.com/tx/0x0d6215537da01c3507400ae36876c5ebe950fd6dd296299dfb7c737966263a8c) block 60831908, 11:37:30 UK
+
+Opening balance 0.0000936011 ETH; remaining 0.0000923072 ETH. Silent 1:34 video (captions only) at `submit/video/steward-demo-live.mp4`, script at `submit/video/SCRIPT.md`. Tests 101 Node + 6 Hardhat green. Not posted on X; final §5 form not submitted — both still need Ali’s go, by 5 Dec.
 
 ## 0. Update — Tuesday 17 November 2026, 20:55 UK (live Sepolia demo mode)
 

@@ -1,0 +1,71 @@
+> steward@0.1.0 demo:live
+> node scripts/demo-live.cjs
+
+Steward — live guided demo on Base Sepolia
+Paper + testnet only. The contract never moves funds. No mainnet assets.
+
+Network     Base Sepolia (chain id 84532)
+Contract    0xA2cFFa3bdb2CD12dda441f1DA7139E050b733188
+Owner       0xbad2aA8FFF3d577b08Ef9f128d45C1A807497e4F
+Balance     0.0000936011 ETH  (testnet ETH only)
+
+Reading live Mainnet NAVs (eth_call only, no gas)...
+[preflight] Estimating gas for setMandate, propose, and a reserved approve. Nothing sent yet.
+  setMandate   gas 31340  estimate 0.0000004136 ETH
+  propose      gas 148002  estimate 0.0000019536 ETH
+  approve      gas 100000  reserved 0.00000132 ETH
+  total need   0.0000036873 ETH (incl. headroom). Balance 0.0000936011 ETH.
+  OK — balance covers all three writes. No faucet used.
+
+Step 1 — Mandate
+  Universe: AAPLc, AMZNc, GOOGLc, METAc, MSFTc, NVDAc, TSLAc
+  Caps: 30% max weight, 10% cash sleeve, 200 bps threshold
+  Paper book: $10,000 cash + $90,000 AAPLc
+  mandateHash  0x3b08733e0033b119973e556e2e8c4e80a848ce4b0a2e0d1366d91d879522b3f2
+  Sending setMandate...
+Sepolia tx sent    0x6034405cbfd46d31f8d88d7b7a6f89e4b7fef3615c52ea60fa19aa6b824abd1d
+Sepolia tx mined   0x6034405cbfd46d31f8d88d7b7a6f89e4b7fef3615c52ea60fa19aa6b824abd1d block 60831895 status 1
+  Mined        0x6034405cbfd46d31f8d88d7b7a6f89e4b7fef3615c52ea60fa19aa6b824abd1d  block 60831895
+  Blockscout   https://base-sepolia.blockscout.com/tx/0x6034405cbfd46d31f8d88d7b7a6f89e4b7fef3615c52ea60fa19aa6b824abd1d
+
+Step 2 — Proposal
+  Live Mainnet NAVs were read with eth_call only (no gas).
+  Action: rebalance (drift)
+  sell AAPLc $77,143
+  buy AMZNc $12,857
+  buy GOOGLc $12,857
+  buy METAc $12,857
+  buy MSFTc $12,857
+  buy NVDAc $12,857
+  buy TSLAc $12,857
+  researchHash 0x74a08bd5fa1b872d06fd913f625190d01afc4fef899105b2be95e2bfbb948527
+  proposalHash 0xdca5d3c1b625983ac974a72bfd7966a2eb11f8e4890fd88f9350380d03da0b6d
+  Sending propose...
+Sepolia tx sent    0x4c4981192e41b1b4e1c828d39cc5e57b6d2a49308aff7d186a610ab57581ca5c
+Sepolia tx mined   0x4c4981192e41b1b4e1c828d39cc5e57b6d2a49308aff7d186a610ab57581ca5c block 60831901 status 1
+  Mined        0x4c4981192e41b1b4e1c828d39cc5e57b6d2a49308aff7d186a610ab57581ca5c  block 60831901
+  proposalId   0xf94d78775037571ae0ce8508770648a16e1b2058ed027babc49935a930e94669
+  Blockscout   https://base-sepolia.blockscout.com/tx/0x4c4981192e41b1b4e1c828d39cc5e57b6d2a49308aff7d186a610ab57581ca5c
+
+Step 3 — Paper fill
+  Estimating approve against the mined proposalId, then sending if the balance still covers it.
+  approve      gas 38191  need 0.0000005041 ETH
+  Sending approve...
+Sepolia tx sent    0x0d6215537da01c3507400ae36876c5ebe950fd6dd296299dfb7c737966263a8c
+Sepolia tx mined   0x0d6215537da01c3507400ae36876c5ebe950fd6dd296299dfb7c737966263a8c block 60831908 status 1
+  Mined        0x0d6215537da01c3507400ae36876c5ebe950fd6dd296299dfb7c737966263a8c  block 60831908
+  Blockscout   https://base-sepolia.blockscout.com/tx/0x0d6215537da01c3507400ae36876c5ebe950fd6dd296299dfb7c737966263a8c
+  Paper book updated to the target weights. No funds moved.
+
+Step 4 — Proposal log
+  setMandate   0x6034405cbfd46d31f8d88d7b7a6f89e4b7fef3615c52ea60fa19aa6b824abd1d
+               https://base-sepolia.blockscout.com/tx/0x6034405cbfd46d31f8d88d7b7a6f89e4b7fef3615c52ea60fa19aa6b824abd1d
+  propose      0x4c4981192e41b1b4e1c828d39cc5e57b6d2a49308aff7d186a610ab57581ca5c
+               https://base-sepolia.blockscout.com/tx/0x4c4981192e41b1b4e1c828d39cc5e57b6d2a49308aff7d186a610ab57581ca5c
+  approve      0x0d6215537da01c3507400ae36876c5ebe950fd6dd296299dfb7c737966263a8c
+               https://base-sepolia.blockscout.com/tx/0x0d6215537da01c3507400ae36876c5ebe950fd6dd296299dfb7c737966263a8c
+  Remaining    0.0000923072 ETH (testnet only)
+
+Done. Contract is a proposal log only — it never moves funds.
+
+Evidence    submit/live-runs/20261119T113731Z-demo-live.json

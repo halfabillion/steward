@@ -10,6 +10,8 @@ This folder is the local build for the Base Stocks Maxxing season (Agentic Stock
 npm install          # project-local only
 npm test             # Node tests (engine, eligibility, explain, paper, premium, API e2e, DEX, guided-demo flow) + 6 local contract tests
 npm run demo         # recommended: prints the 4-step path and serves http://127.0.0.1:5173
+npm run demo:live    # guided flow against the deployed Base Sepolia contract (real testnet txs)
+                     # checks the deployer balance first and stops if it is too low; no faucet
 npm run dev          # same server without the printed walkthrough
                      # stop with Ctrl-C; one process, in-process Hardhat (chain id 84532), loopback only
 npm run spike        # optional live read-only Mainnet + API probe (no keys, no gas)
@@ -49,10 +51,14 @@ The local network is **always chain id 84532** (Base Sepolia’s id, used here f
 The local `npm run demo` app defaults to in-process Hardhat tagged 84532. To opt in to live Base Sepolia writes against the contract above:
 
 ```bash
-STEWARD_NETWORK=base-sepolia npm run demo
+npm run demo:live                 # terminal guided flow: mandate → proposal → paper fill → log
+npm run demo:live -- --dry-run    # snapshot + gas preflight only; no transaction is sent
+STEWARD_NETWORK=base-sepolia npm run demo   # same writes through the web UI, with in-app confirmation
 ```
 
-The app then signs MandateSet / Proposed / Approved with the testnet deployer key file (`../.secrets/sepolia-deployer.key`, or `STEWARD_DEPLOYER_KEY_FILE`) after an in-app confirmation. It refuses to sign if the RPC reports any chain id other than 84532, and it estimates gas before each write and stops if the testnet balance is too low. The key is read at runtime only and is never printed, logged, or committed. Transaction rows link to Blockscout. Bounded schedules are disabled in live mode. The Hardhat config still has no public network URLs. Gated one-off scripts: `STEWARD_DEPLOY=yes node scripts/deploy-sepolia.cjs` and `STEWARD_DEMO_WRITE=yes node scripts/demo-sepolia-write.cjs`.
+`npm run demo:live` uses only the existing Base Sepolia ETH on the testnet deployer. It prints the balance first, estimates gas for `setMandate`, `propose`, and a reserved `approve`, and exits without sending if the balance is too low. It will not request a faucet or touch any other wallet. The proposal is computed from the same demo mandate as the UI (7-name basket, $90k AAPLc, $10k cash) and live Mainnet NAVs (read-only `eth_call`). Each mined row is printed with a Blockscout link. The key file (`../.secrets/sepolia-deployer.key`, or `STEWARD_DEPLOYER_KEY_FILE`) is read at runtime only and is never printed, logged, or committed. The script refuses to sign if the RPC reports any chain id other than 84532.
+
+The web app, when started with `STEWARD_NETWORK=base-sepolia`, signs the same three methods after an in-app confirmation, with the same chain-id and balance guards. Transaction rows link to Blockscout. Bounded schedules are disabled in live mode. The Hardhat config still has no public network URLs. Gated one-off scripts: `STEWARD_DEPLOY=yes node scripts/deploy-sepolia.cjs` and `STEWARD_DEMO_WRITE=yes node scripts/demo-sepolia-write.cjs`.
 
 ## Contest notes
 

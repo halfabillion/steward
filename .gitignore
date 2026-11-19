@@ -7,9 +7,15 @@ coverage/
 .env.*
 !.env.example
 *.log
+!submit/video/demo-live.log
 .DS_Store
 web/dist/
 /data/
 .secrets/
 *.key
 secrets/
+
+# Video render intermediates (the finished mp4 and stills are kept)
+submit/video/raw/
+__pycache__/
+*.pyc

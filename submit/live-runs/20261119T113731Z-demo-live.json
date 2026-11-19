@@ -1,0 +1,102 @@
+{
+  "recordedAt": "2026-11-19T11:37:31.189Z",
+  "recordedAtUK": "19/11/2026, 11:37:31 UK",
+  "network": "base-sepolia",
+  "chainId": 84532,
+  "contract": "0xA2cFFa3bdb2CD12dda441f1DA7139E050b733188",
+  "owner": "0xbad2aA8FFF3d577b08Ef9f128d45C1A807497e4F",
+  "dryRun": false,
+  "ok": true,
+  "skipped": false,
+  "error": null,
+  "txs": {
+    "setMandate": "0x6034405cbfd46d31f8d88d7b7a6f89e4b7fef3615c52ea60fa19aa6b824abd1d",
+    "propose": "0x4c4981192e41b1b4e1c828d39cc5e57b6d2a49308aff7d186a610ab57581ca5c",
+    "approve": "0x0d6215537da01c3507400ae36876c5ebe950fd6dd296299dfb7c737966263a8c",
+    "proposalId": "0xf94d78775037571ae0ce8508770648a16e1b2058ed027babc49935a930e94669"
+  },
+  "evidence": {
+    "dryRun": false,
+    "steps": [
+      {
+        "name": "setMandate",
+        "hash": "0x6034405cbfd46d31f8d88d7b7a6f89e4b7fef3615c52ea60fa19aa6b824abd1d",
+        "block": 60831895,
+        "url": "https://base-sepolia.blockscout.com/tx/0x6034405cbfd46d31f8d88d7b7a6f89e4b7fef3615c52ea60fa19aa6b824abd1d"
+      },
+      {
+        "name": "propose",
+        "hash": "0x4c4981192e41b1b4e1c828d39cc5e57b6d2a49308aff7d186a610ab57581ca5c",
+        "block": 60831901,
+        "url": "https://base-sepolia.blockscout.com/tx/0x4c4981192e41b1b4e1c828d39cc5e57b6d2a49308aff7d186a610ab57581ca5c",
+        "proposalId": "0xf94d78775037571ae0ce8508770648a16e1b2058ed027babc49935a930e94669"
+      },
+      {
+        "name": "approve",
+        "hash": "0x0d6215537da01c3507400ae36876c5ebe950fd6dd296299dfb7c737966263a8c",
+        "block": 60831908,
+        "url": "https://base-sepolia.blockscout.com/tx/0x0d6215537da01c3507400ae36876c5ebe950fd6dd296299dfb7c737966263a8c"
+      }
+    ],
+    "error": null,
+    "hashes": {
+      "mandateHash": "0x3b08733e0033b119973e556e2e8c4e80a848ce4b0a2e0d1366d91d879522b3f2",
+      "researchHash": "0x74a08bd5fa1b872d06fd913f625190d01afc4fef899105b2be95e2bfbb948527",
+      "proposalHash": "0xdca5d3c1b625983ac974a72bfd7966a2eb11f8e4890fd88f9350380d03da0b6d"
+    },
+    "budget": {
+      "balanceWei": "93601149997906",
+      "neededWei": "3687314400000",
+      "balanceEth": "0.0000936011",
+      "neededEth": "0.0000036873",
+      "estimates": [
+        {
+          "name": "setMandate",
+          "gasLimit": "31340",
+          "neededWei": "413688000000",
+          "reserved": false
+        },
+        {
+          "name": "propose",
+          "gasLimit": "148002",
+          "neededWei": "1953626400000",
+          "reserved": false
+        },
+        {
+          "name": "approve",
+          "gasLimit": "100000",
+          "neededWei": "1320000000000",
+          "reserved": true
+        }
+      ]
+    },
+    "remainingWei": "92307255997240",
+    "remainingEth": "0.0000923072",
+    "proposalId": "0xf94d78775037571ae0ce8508770648a16e1b2058ed027babc49935a930e94669",
+    "summary": {
+      "action": "rebalance",
+      "code": "drift",
+      "sellNames": [
+        "AAPLc"
+      ],
+      "buyNames": [
+        "AAPLc",
+        "AMZNc",
+        "GOOGLc",
+        "METAc",
+        "MSFTc",
+        "NVDAc",
+        "TSLAc"
+      ],
+      "tradeLines": [
+        "sell AAPLc $77,143",
+        "buy AMZNc $12,857",
+        "buy GOOGLc $12,857",
+        "buy METAc $12,857",
+        "buy MSFTc $12,857",
+        "buy NVDAc $12,857",
+        "buy TSLAc $12,857"
+      ]
+    }
+  }
+}

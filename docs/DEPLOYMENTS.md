@@ -1,6 +1,6 @@
 # Steward deployments
 
-Last updated: Tuesday 17 November 2026, 20:55 UK (Europe/London, GMT / UTC+0).
+Last updated: Thursday 19 November 2026, 11:45 UK (Europe/London, GMT / UTC+0).
 
 The proposal-log contract is on **Base Sepolia (chain id 84532)** only. Public repository: https://github.com/halfabillion/steward
 
@@ -78,6 +78,24 @@ The demo app can opt in with `STEWARD_NETWORK=base-sepolia`. A recorded guided r
 - approve [`0x79398e1b8b7d9ec31d4927782d2329292165978f245bfb4b70c9c7c2e7488d9f`](https://base-sepolia.blockscout.com/tx/0x79398e1b8b7d9ec31d4927782d2329292165978f245bfb4b70c9c7c2e7488d9f) (block 60133930, 20:50:54 UK)
 
 An earlier rehearsal setMandate from the first recorder pass: [`0x8c75c2c2dcab18c9b23917581b87a72028f2194d0e87767f0bcb42b3ca4bb6c2`](https://base-sepolia.blockscout.com/tx/0x8c75c2c2dcab18c9b23917581b87a72028f2194d0e87767f0bcb42b3ca4bb6c2) (20:47:21 UK). Remaining deployer balance after these writes: about 0.00009360 ETH. No other wallet was used.
+
+## Live guided demo writes (19 Nov 2026, 11:37 UK)
+
+`npm run demo:live` ran the guided flow (demo mandate, live Mainnet NAVs, rebalance, paper fill) against the same contract, after a balance-and-gas preflight. Opening deployer balance: 0.0000936011 ETH. Estimated need including headroom: 0.0000036873 ETH. No faucet and no other wallet. Evidence: `submit/live-runs/20261119T113731Z-demo-live.json`. Video: `submit/video/steward-demo-live.mp4`.
+
+| Step | Tx | Block | Time (UK) |
+| --- | --- | --- | --- |
+| setMandate | [`0x6034405cbfd46d31f8d88d7b7a6f89e4b7fef3615c52ea60fa19aa6b824abd1d`](https://base-sepolia.blockscout.com/tx/0x6034405cbfd46d31f8d88d7b7a6f89e4b7fef3615c52ea60fa19aa6b824abd1d) | 60831895 | 19 Nov 2026, 11:37:27 |
+| propose | [`0x4c4981192e41b1b4e1c828d39cc5e57b6d2a49308aff7d186a610ab57581ca5c`](https://base-sepolia.blockscout.com/tx/0x4c4981192e41b1b4e1c828d39cc5e57b6d2a49308aff7d186a610ab57581ca5c) | 60831901 | 19 Nov 2026, 11:37:29 |
+| approve | [`0x0d6215537da01c3507400ae36876c5ebe950fd6dd296299dfb7c737966263a8c`](https://base-sepolia.blockscout.com/tx/0x0d6215537da01c3507400ae36876c5ebe950fd6dd296299dfb7c737966263a8c) | 60831908 | 19 Nov 2026, 11:37:30 |
+
+- **proposalId:** `0xf94d78775037571ae0ce8508770648a16e1b2058ed027babc49935a930e94669`
+- **mandateHash:** `0x3b08733e0033b119973e556e2e8c4e80a848ce4b0a2e0d1366d91d879522b3f2`
+- **researchHash:** `0x74a08bd5fa1b872d06fd913f625190d01afc4fef899105b2be95e2bfbb948527`
+- **proposalHash:** `0xdca5d3c1b625983ac974a72bfd7966a2eb11f8e4890fd88f9350380d03da0b6d`
+- All three receipts status 0x1. Value 0 ETH. Remaining deployer balance: **0.0000923072 ETH**. Deployer nonce after these writes: 11.
+
+
 
 ## Balances after this session
 
